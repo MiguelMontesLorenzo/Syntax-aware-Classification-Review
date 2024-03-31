@@ -94,7 +94,14 @@ class PCFG:
 
         for rule in rules:
             rule: str = re.sub(r"[,.\n]", "", rule)
-            if rule.strip() != "->" and rule.strip() != "":
+            rule_clean: str = rule.replace(" ", "")
+            derivation = rule.split("->")
+            if (
+                rule.strip() != "->"
+                and rule.strip() != ""
+                and rule_clean != ""
+                and derivation[0].strip() != ""
+            ):
                 self.convert_to_CNF(rule)
 
     def convert_to_CNF(self, rule) -> None:
@@ -120,12 +127,11 @@ class PCFG:
         children = derivation[1].strip().split()
 
         if len(children) > 0 and len(children) <= 2:
-            if (str(father), tuple(children)) not in self.nodes.keys():
 
+            # Update the node count
+            if (str(father), tuple(children)) not in self.nodes.keys():
                 self.nodes[(str(father), tuple(children))] = Node(father, children)
             else:
-
-                # Update the node count
                 node = self.nodes[(str(father), tuple(children))]
                 node.count += 1
 

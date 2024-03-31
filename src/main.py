@@ -23,7 +23,7 @@ def main():
     pcfg.compute_probabilities()
 
     # Parsing
-    cky = CKY(pcfg, "Pierre is fine")
+    cky = CKY(pcfg, "A rock is grey")
     print(cky.parse())
 
 

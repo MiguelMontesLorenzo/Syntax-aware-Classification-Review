@@ -13,6 +13,7 @@ class CKY:
         self.tag2index = self.create_tag2index()
 
     def create_tag2index(self):
+
         return {tag: i for i, tag in enumerate(self.grammar.non_terminal)}
 
     def compute(self):
@@ -68,20 +69,18 @@ class CKY:
 
     def build_tree(self, i, j, symbol, s_table):
         if i == j:
-            return f"Symbol: {symbol}, kid: {self.input[i]}"
+            return f"Symbol: {symbol} Kid: {self.input[i]}"
 
         split = int(s_table[i, j, self.tag2index[symbol]].item())
-        print(i, j, self.tag2index[symbol], split)
+
         # Get the left and right symbols
-        left_symbol = torch.argmax(s_table[i, split, :]).item()
-        right_symbol = torch.argmax(s_table[split + 1, j, :]).item()
-        print(left_symbol, right_symbol)
-        left_child = self.build_tree(
-            i, split, list(self.tag2index.keys())[left_symbol], s_table
-        )
-        right_child = self.build_tree(
-            split + 1, j, list(self.tag2index.keys())[right_symbol], s_table
-        )
+        left_symbol_index = torch.argmax(s_table[i, split, :]).item()
+        right_symbol_index = torch.argmax(s_table[split + 1, j, :]).item()
+        left_symbol = list(self.tag2index.keys())[left_symbol_index]
+        right_symbol = list(self.tag2index.keys())[right_symbol_index]
+
+        left_child = self.build_tree(i, split, left_symbol, s_table)
+        right_child = self.build_tree(split + 1, j, right_symbol, s_table)
 
         tree_str = f"Father: {symbol}\n"
 
