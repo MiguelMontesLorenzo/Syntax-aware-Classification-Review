@@ -1,5 +1,6 @@
 from src.data_processing_parsing import load_data
 from src.grammar_conversion import PCFG
+from src.parsing import CKY
 import os
 
 
@@ -20,8 +21,10 @@ def main():
     pcfg: PCFG = PCFG()
     pcfg.read_rules(filepath)
     pcfg.compute_probabilities()
-    # print(pcfg.probability_rules)
-    # print(pcfg.nodes)
+
+    # Parsing
+    cky = CKY(pcfg, "Pierre is fine")
+    print(cky.parse())
 
 
 if __name__ == "__main__":
