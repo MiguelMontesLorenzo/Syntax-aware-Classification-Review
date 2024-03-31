@@ -29,7 +29,7 @@ def extract_rules(tree: nltk.Tree, rules: List) -> List[Tuple[str, str]]:
     if isinstance(tree, nltk.Tree):
         rules.append((tree.label(), ' '.join(child.label() if isinstance(child, nltk.Tree) else child for child in tree)))
         for child in tree:
-            extract_rules(child, rules)
+            rules = extract_rules(child, rules)
     return rules
 
 
@@ -55,7 +55,9 @@ def load_data() -> None:
     download_data(path)
 
     # Initialize a BracketParseCorpusReader
-    prd_reader: BracketParseCorpusReader = BracketParseCorpusReader(path, r".*\.prd")
+    path_files = path + "/corpora/treebank/combined"
+    print(path_files)
+    prd_reader: BracketParseCorpusReader = BracketParseCorpusReader(path_files, r".*\.mrg")
 
     # Get a list of file identifiers (fileids)
     fileids: List[str] = prd_reader.fileids()
