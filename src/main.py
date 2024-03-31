@@ -1,8 +1,27 @@
 from src.data_processing_parsing import load_data
+from src.grammar_conversion import PCFG
+import os
 
 
 def main():
-    load_data()
+    # Path to the directory containing the files
+    path: str = "data_parsing"
+
+    # File name to save the grammar
+    filename = "grammar_rules.txt"
+    filepath = path + "/" + filename
+
+    # Load grammar if it doesnt exist
+    if not os.path.exists(filepath):
+        print("creating file")
+        load_data(path=path, filepath=filepath)
+
+    # Probability Context Free Grammar
+    pcfg: PCFG = PCFG()
+    pcfg.read_rules(filepath)
+    pcfg.compute_probabilities()
+    # print(pcfg.probability_rules)
+    # print(pcfg.nodes)
 
 
 if __name__ == "__main__":
