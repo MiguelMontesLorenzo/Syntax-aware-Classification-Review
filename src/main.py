@@ -14,7 +14,7 @@ def main():
 
     # Load grammar if it doesnt exist
     if not os.path.exists(filepath):
-        print("creating file")
+        print("Creating file...")
         load_data(path=path, filepath=filepath)
 
     # Probability Context Free Grammar
@@ -23,7 +23,7 @@ def main():
     pcfg.compute_probabilities()
 
     # Parsing
-    cky = CKY(pcfg, "A rock is grey")
+    cky = CKY(pcfg, "the woman saw the man with the television")
     print(cky.parse())
 
 

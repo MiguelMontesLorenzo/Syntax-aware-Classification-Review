@@ -42,11 +42,12 @@ class Node:
     def __str__(self) -> str:
         return f"{self.father}: {self.children}"
 
-    def compute_probability(self) -> None:
+    def compute_probability(self, fathers) -> None:
         """
         Compute the probability of the node.
         """
-        self.probability = self.count / self.father.count
+
+        self.probability = self.count / fathers[str(self.father)]
 
     def get_probability(self) -> float:
         """
@@ -93,16 +94,19 @@ class PCFG:
             rules: List[str] = file.readlines()
 
         for rule in rules:
-            rule: str = re.sub(r"[,.\n]", "", rule)
-            rule_clean: str = rule.replace(" ", "")
+            rule = re.sub(r"[,.\n]", "", rule)
+            rule_clean = re.sub(r"-\d+", "", rule)
+            rule_clean = re.sub(r"-\d+", "", rule_clean)
+            rule_clean_spaces: str = rule.replace(" ", "")
             derivation = rule.split("->")
+
             if (
                 rule.strip() != "->"
                 and rule.strip() != ""
-                and rule_clean != ""
+                and rule_clean_spaces != ""
                 and derivation[0].strip() != ""
             ):
-                self.convert_to_CNF(rule)
+                self.convert_to_CNF(rule_clean)
 
     def convert_to_CNF(self, rule) -> None:
         """
@@ -155,7 +159,7 @@ class PCFG:
         """
         for key, node in self.nodes.items():
             # Update probability
-            node.compute_probability()
+            node.compute_probability(self.fathers)
 
             # Storage the probability in the dictionary
             prob: float = node.get_probability()
