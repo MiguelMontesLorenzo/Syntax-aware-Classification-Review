@@ -1,49 +1,54 @@
+import os
 import torch
-import torch.nn as nn
 from transformers import BertModel, BertTokenizer
 
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-bert_model = BertModel.from_pretrained("bert-base-uncased")
 
-sentence = "The quick brown fox jumps over the lazy dog."
+def load_bert_model():
+    """
+    Loads basic BERT model and tokenizer. Puts model in evaluation mode.
+    """
+    model = BertModel.from_pretrained("bert-base-uncased")
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    model.eval()
+    return model, tokenizer
 
-tokens = tokenizer.tokenize(sentence)
-token_ids = tokenizer.convert_tokens_to_ids(tokens)
 
-with torch.no_grad():
-    outputs = bert_model(torch.tensor([token_ids]))
+def create_embedding(sentence, tokenizer, model):
+    token_ids = tokenizer.encode(sentence, add_special_tokens=True)
+    with torch.no_grad():
+        outputs = model(torch.tensor([token_ids]))
+    embedding = outputs.last_hidden_state.squeeze(0).mean(dim=0).numpy()
+    return embedding
 
-embeddings = outputs.last_hidden_state  # (batch_size, sequence_length, hidden_size)
-attention_mask = outputs.attentions[-1].squeeze(0)  # attention mask for the last layer
 
-dependency_tree = {
-    "root": {
-        "word": "jumps",
-        "children": [
-            {"word": "fox", "relation": "subj"},
-            {"word": "dog", "relation": "obj"},
-            {"word": "quick", "relation": "amod"},
-            {"word": "brown", "relation": "amod"},
-            {"word": "over", "relation": "prep"},
-            {"word": "the", "relation": "pobj"},
-            {"word": "lazy", "relation": "amod"},
-            {"word": "The", "relation": "det"}
-        ]
-    }
-}
+def generate_embeddings(sentences, model, tokenizer, save=False, filename=None):
+    embeddings = []
 
-def modify_embeddings(embeddings, dependency_tree):
-    modified_embeddings = embeddings.clone()
+    if save:
+        data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+        os.makedirs(data_dir, exist_ok=True)
+        filepath = os.path.join(data_dir, filename)
 
-    for node in dependency_tree.values():
-        word = node["word"]
-        children = node.get("children", [])
-        if children:
-            children_embeddings = torch.stack([modified_embeddings[:, tokenizer.convert_tokens_to_ids(child["word"])] for child in children], dim=1)
-            mean_children_embeddings = torch.mean(children_embeddings, dim=1, keepdim=True)
-            word_embedding = modified_embeddings[:, tokenizer.convert_tokens_to_ids(word)]
-            modified_embeddings[:, tokenizer.convert_tokens_to_ids(word)] = word_embedding + mean_children_embeddings
+        with open(filepath, "w") as file:
+            for sentence in sentences:
+                embedding = create_embedding(sentence, tokenizer, model)
+                file.write(" ".join(map(str, embedding)) + "\n")
+                embeddings.append(embedding)
+    else:
+        for sentence in sentences:
+            embedding = create_embedding(sentence, tokenizer, model)
+            embeddings.append(embedding)
 
-    return modified_embeddings
+    return embeddings
 
-modified_embeddings = modify_embeddings(embeddings, dependency_tree)
+
+if __name__ == "__main__":
+    model, tokenizer = load_bert_model()
+
+    data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+    sentences_file = os.path.join(data_dir, "ptb_sentences.txt")
+    with open(sentences_file, "r") as f:
+        sentences = [line.strip() for line in f.readlines()]
+
+    embeddings = generate_embeddings(sentences, model, tokenizer, save=True, filename="ptb_embeddings.txt")
+
