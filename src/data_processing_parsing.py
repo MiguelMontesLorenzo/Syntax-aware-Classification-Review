@@ -72,7 +72,7 @@ def load_data(path: str, filepath: str) -> None:
                 rules: List[Tuple[str, str]] = []
                 rules = extract_rules(tree, rules)
                 for rule in rules:
-                    file.write(rule[0] + " -> " + rule[1] + "\n")
+                    file.write(rule[0].lower() + " -> " + rule[1].lower() + "\n")
                 file.write("\n")
 
 

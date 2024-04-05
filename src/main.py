@@ -4,13 +4,20 @@ from src.parsing import CKY
 import os
 
 
-def main():
+def main() -> None:
+    """
+    Args:
+    - None
+
+    Returns:
+    - None
+    """
     # Path to the directory containing the files
     path: str = "data_parsing"
 
     # File name to save the grammar
-    filename = "grammar_rules.txt"
-    filepath = path + "/" + filename
+    filename: str = "grammar_rules.txt"
+    filepath: str = path + "/" + filename
 
     # Load grammar if it doesnt exist
     if not os.path.exists(filepath):
@@ -18,12 +25,13 @@ def main():
         load_data(path=path, filepath=filepath)
 
     # Probability Context Free Grammar
+    print("Creating PCFG...")
     pcfg: PCFG = PCFG()
     pcfg.read_rules(filepath)
     pcfg.compute_probabilities()
 
     # Parsing
-    cky = CKY(pcfg, "the woman saw the man with the television")
+    cky: CKY = CKY(pcfg, "my first lover was on TV")
     print(cky.parse())
 
 
