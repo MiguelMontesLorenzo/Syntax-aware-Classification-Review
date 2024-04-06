@@ -1,155 +1,12 @@
-from datasets import Dataset, load_dataset
 import os
 import requests
 import zipfile
-from typing import List, Optional
+from typing import List, Dict, Tuple
+from src.RecursiveModel.treebank import Tree
+from src.RecursiveModel.utils import flatten
 
 
-class Node:
-    def __init__(self, label: int, word: str, parent: Optional[Node] = None) -> None:
-        """
-        Initialize Node class.
-        Args:
-        - label (int): sentiment label
-        - word (str): word in the sentence
-        - parent (Optional[Node]): node parent
-        Returns:
-        - None
-        """
-        self.label: int = label
-        self.word: str = word
-        self.parent: Optional[Node] = parent
-        self.left: Optional[Node] = None
-        self.right: Optional[Node] = None
-        self.isLeaf: bool = False
-
-    def __str__(self) -> str:
-        """
-        Print the string ofof the node and it's children.
-        Args:
-        - None
-        Returns:
-        - None
-        """
-        if self.isLeaf:
-            return "[{0}:{1}]".format(self.word, self.label)
-        return "({0} <- [{1}:{2}] -> {3})".format(
-            self.left, self.word, self.label, self.right
-        )
-
-
-class Tree:
-    def __init__(
-        self, treeString: str, openChar: str = "(", closeChar: str = ")"
-    ) -> None:
-        """
-        Initialize Tree class.
-        Args:
-        - treeString (str): string extracted from the dataset, is equivalent
-            to a tree.
-        - openChar (str): string that delimits the start of a constituyent.
-        - closeChar (str): string that delimits the start of a constituyent.
-        """
-        tokens: List = []
-        self.open: str = openChar
-        self.close: str = closeChar
-
-        for toks in treeString.strip().split():
-            tokens += list(toks)
-        self.root: Node = self.parse(tokens)
-
-        self.labels: List[int] = self.get_labels(self.root)
-        self.num_words: int = len(self.labels)
-
-    def parse(self, tokens: List[str], parent: Optional[Node] = None) -> Node:
-        """
-        Parse a list of tokens (equivalent) to a sentence (or a subsentence)
-        to convert the complete sentence to a tree structure.
-        Args:
-        - tokens (List[str]): list of tokens to parse.
-        - parent (Optional[Node]): Node to start parsing,  if None, is the complete sentence.
-        Returns:
-        - node (Node): Node corresponding to the parent of the tree.
-        """
-        assert tokens[0] == self.open, "Malformed tree"
-        assert tokens[-1] == self.close, "Malformed tree"
-
-        split: int = 2
-        countOpen: int = 0
-        countClose: int = 0
-
-        if tokens[split] == self.open:
-            countOpen += 1
-            split += 1
-
-        # Find where left child and right child split
-        while countOpen != countClose:
-            if tokens[split] == self.open:
-                countOpen += 1
-            if tokens[split] == self.close:
-                countClose += 1
-            split += 1
-
-        # New node
-        node: Node = Node(int(tokens[1]), parent)
-
-        # Leaf Node
-        if countOpen == 0:
-            node.word = "".join(tokens[2:-1]).lower()
-            node.isLeaf = True
-            return node
-
-        # Continue parsing the children
-        node.left = self.parse(tokens[2:split], parent=node)
-        node.right = self.parse(tokens[split:-1], parent=node)
-
-        return node
-
-    def get_words(self) -> List[str]:
-        """
-        Get the words of the sentence to parse
-        Args:
-        - None
-        Returns:
-        - words (List[str]): list of words corresponding to the sentence
-        """
-        leaves: List[Node] = self.getLeaves(self.root)
-        words: List[str] = [node.word for node in leaves]
-        return words
-
-    def get_labels(self, node: Node) -> List[int]:
-        """
-        Gets the terminal labels of the sentence starting with the node.
-
-        Args:
-        - node (Node): starting node
-
-        Returns:
-        - list of labels (List[int])
-        """
-        if node is None:
-            return []
-        return self.get_labels(node.left) + self.get_labels(node.right) + [node.label]
-
-    def getLeaves(self, node: Node) -> List[Node]:
-        """
-        Gets the terminal nodes of the sentence starting with the node.
-
-        Args:
-        - node (Node): starting node
-
-        Returns:
-        - list of nodes (List[Node])
-        """
-        if node is None:
-            return []
-        if node.isLeaf:
-            return [node]
-        else:
-            return self.getLeaves(node.left) + self.getLeaves(node.right)
-
-
-def download_file(url: str, save_dir: str, file_name: str) -> None:
+def download_file(url: str, save_dir: str, filename: str) -> None:
     """
     Args:
     - url (str): url of the dataset.
@@ -159,28 +16,26 @@ def download_file(url: str, save_dir: str, file_name: str) -> None:
     Returns:
     - None
     """
-    # Ensure the save directory exists
-    os.makedirs(save_dir, exist_ok=True)
-
     # Get the file path to save to
-    file_path = os.path.join(save_dir, file_name)
+    filepath = os.path.join(save_dir, filename)
 
     # Download the file
-    print(f"Downloading {file_name}...")
+    print(f"Downloading {filename}...")
     response = requests.get(url)
-    with open(file_path, "wb") as file:
+    with open(filepath, "wb") as file:
         file.write(response.content)
-    print("Download complete.")
 
-    return file_path
+    return filepath
 
 
 def extract_zip(zip_path: str, extract_dir: str) -> None:
     """
-    Function to extract the files of zip_file into extract_dir
+    Function to extract the files of zip_file into extract_dir.
+
     Args:
     - zip_path (str): Path to the zip file to unzip.
     - extract_dir (str): Path to load the unzipped files.
+
     Returns:
     - None
     """
@@ -190,12 +45,11 @@ def extract_zip(zip_path: str, extract_dir: str) -> None:
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_dir)
 
-    print("Extraction complete.")
-
 
 def download_data() -> None:
     """
-    Complete pipeline to download sst data
+    Complete pipeline to download sst data.
+
     Args:
     - None
 
@@ -205,7 +59,7 @@ def download_data() -> None:
 
     # Define the URL, directory name, and file name
     urls: List[str] = ["http://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"]
-    path: str = "data"
+    path: str = "data_sst"
     name: str = path + "/sst.zip"
 
     if not os.path.exists(path):
@@ -218,5 +72,41 @@ def download_data() -> None:
         extract_zip(zip_path, path)
 
 
-if __name__ == "__main__":
-    download_data()
+def load_trees(file: str) -> List[Tree]:
+    """
+    Loads training trees. Maps leaf node words to word ids.
+
+    Args:
+    - file (str)
+
+    Returns:
+    - None
+    """
+    filename: str = "data_sst/trees/" + file + ".txt"
+    print(f"Loading {filename} trees...")
+    with open(filename, "r", encoding="utf-8") as file:
+        trees: List[Tree] = [Tree(line) for line in file.readlines()]
+
+    return trees
+
+
+def load_vocab(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
+    """
+    Create the word2index and index2word dictionary from the trees.
+
+    Args:
+    - data (List[Tree]): list of trees with the data.
+
+    Returns:
+    word2index (Dict[str, int]): Convert word to a unique index
+    index2word (Dict[int, str]): Convert form index to string
+    """
+    vocab: List = list(set(flatten([t.get_words() for t in data])))
+    word2index: Dict[str, int] = {"<UNK>": 0}
+    for word in vocab:
+        if word not in word2index.keys():
+            word2index[word] = len(word2index)
+
+    index2word: Dict[int, str] = {v: k for k, v in word2index.items()}
+
+    return word2index, index2word
