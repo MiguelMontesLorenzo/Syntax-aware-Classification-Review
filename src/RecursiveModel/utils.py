@@ -1,7 +1,6 @@
 import random
 from typing import List
 import torch
-from torch.jit import RecursiveScriptModule
 from src.RecursiveModel.treebank import Tree
 import os
 
@@ -56,10 +55,7 @@ def save_model(model: torch.nn.Module, name: str) -> None:
         os.makedirs("models")
 
     # save scripted model
-    model_scripted: RecursiveScriptModule = torch.jit.script(model.cpu())
-    model_scripted.save(f"models/{name}.pt")
-
-    return None
+    torch.save(model, f"models/{name}.pt")
 
 
 def accuracy(predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:

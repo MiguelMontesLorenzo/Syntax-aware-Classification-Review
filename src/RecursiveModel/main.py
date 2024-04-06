@@ -70,7 +70,7 @@ def main() -> None:
     # Save model
     save_model(model, name)
 
-    accuracy_value: float = test(model, test_data)
+    accuracy_value: float = test(model, batch_size, test_data, device)
     print("Test accuracy:", accuracy_value)
 
 

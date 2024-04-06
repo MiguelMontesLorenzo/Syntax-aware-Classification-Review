@@ -38,7 +38,7 @@ def train(
     model.train()
     losses: list[float] = []
 
-    for i, batch in enumerate(get_batch(batch_size, train_data)):
+    for _, batch in enumerate(get_batch(batch_size, train_data)):
         if root_only:
             labels_list: List[int] = [tree.labels[-1] for tree in batch]
             labels: torch.autograd.Variable = torch.autograd.Variable(
