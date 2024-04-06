@@ -75,7 +75,7 @@ def val(
     root_only=False,
 ) -> None:
     """
-    Test step function.
+    Val step function.
 
     Args:
     - model (torch.nn.Module): model to train.
@@ -125,7 +125,19 @@ def test(
     device: str,
     root_only=False,
 ) -> float:
+    """
+    Test step function.
 
+    Args:
+    - model (torch.nn.Module): model to train.
+    - batch_size (int): batch_size.
+    - test_data (List[Tree]): training tree.
+    - device (str): model device.
+    - root_only(bool).
+
+    Returns:
+    - None
+    """
     model.eval()
     accuracies: List[float] = []
 
