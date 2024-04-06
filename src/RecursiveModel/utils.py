@@ -60,3 +60,24 @@ def save_model(model: torch.nn.Module, name: str) -> None:
     model_scripted.save(f"models/{name}.pt")
 
     return None
+
+
+def accuracy(predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    """
+    This function computes the accuracy.
+
+    Args:
+        predictions: predictions tensor. Dimensions:
+            [batch, num classes] or [batch].
+        targets: targets tensor. Dimensions: [batch, 1] or [batch].
+
+    Returns:
+        the accuracy in a tensor of a single element.
+    """
+    maximums = torch.argmax(predictions, dim=1)
+
+    correct_predictions = torch.sum(maximums == targets)
+
+    accuracy_measure = correct_predictions / len(targets)
+
+    return accuracy_measure

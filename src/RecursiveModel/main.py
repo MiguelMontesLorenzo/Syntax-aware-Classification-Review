@@ -63,14 +63,15 @@ def main() -> None:
 
     for epoch in tqdm(range(epochs)):
         train(model, batch_size, train_data, device, optimizer, loss, writer, epoch)
-        val(model, val_data, device, loss, writer, epoch, batch_size)
+        val(model, batch_size, val_data, device, loss, writer, epoch)
         # Update the scheduler
         scheduler.step()
 
-    test(model, test_data)
-
     # Save model
     save_model(model, name)
+
+    accuracy_value: float = test(model, test_data)
+    print("Test accuracy:", accuracy_value)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import torch
-from src.RecursiveModel.utils import get_batch, flatten
+from src.RecursiveModel.utils import get_batch, flatten, accuracy
 import numpy as np
 from typing import List
 from src.RecursiveModel.treebank import Tree
@@ -39,7 +39,6 @@ def train(
     losses: list[float] = []
 
     for i, batch in enumerate(get_batch(batch_size, train_data)):
-        print(i)
         if root_only:
             labels_list: List[int] = [tree.labels[-1] for tree in batch]
             labels: torch.autograd.Variable = torch.autograd.Variable(
@@ -97,19 +96,20 @@ def val(
     with torch.no_grad():
         for _, batch in enumerate(get_batch(batch_size, val_data)):
             if root_only:
-                labels = [tree.labels[-1] for tree in batch]
-                labels = torch.autograd.Variable(
-                    torch.tensor(labels, dtype=torch.long, device=device)
+                labels_list: List[int] = [tree.labels[-1] for tree in batch]
+                labels: torch.autograd.Variable = torch.autograd.Variable(
+                    torch.tensor(labels_list, dtype=torch.long, device=device)
                 )
+
             else:
-                labels = [tree.labels for tree in batch]
-                labels = torch.autograd.Variable(
-                    torch.tensor(flatten(labels), dtype=torch.long, device=device)
+                labels_list: List[int] = [tree.labels for tree in batch]
+                labels: torch.autograd.Variable = torch.autograd.Variable(
+                    torch.tensor(flatten(labels_list), dtype=torch.long, device=device)
                 )
 
             # compute outputs and loss
-            output = model(batch, root_only)
-            loss_value = loss_function(output, labels.long())
+            output: torch.Tensor = model(batch, root_only)
+            loss_value: float = loss_function(output, labels.long())
 
             # add metrics to vectors
             losses.append(loss_value.item())
@@ -118,18 +118,36 @@ def val(
             writer.add_scalar("val/loss", np.mean(losses), epoch)
 
 
-def test(model, test_data, root_only: bool = False):
+def test(
+    model: torch.nn.Module,
+    batch_size: int,
+    test_data: List[Tree],
+    device: str,
+    root_only=False,
+) -> float:
 
-    accuracy = 0
-    num_node = 0
+    model.eval()
+    accuracies: List[float] = []
 
-    for test in test_data:
-        model.zero_grad()
-        preds = model(test, root_only)
-        labels = test.labels[-1:] if root_only else test.labels
-        for pred, label in zip(preds.max(1)[1].data.tolist(), labels):
-            num_node += 1
-            if pred == label:
-                accuracy += 1
-    print("Test Acc: ", accuracy / num_node * 100)
-    return accuracy / num_node * 100
+    with torch.no_grad():
+        for _, batch in enumerate(get_batch(batch_size, test_data)):
+            if root_only:
+                labels_list: List[int] = [tree.labels[-1] for tree in batch]
+                labels: torch.autograd.Variable = torch.autograd.Variable(
+                    torch.tensor(labels_list, dtype=torch.long, device=device)
+                )
+            else:
+                labels_list: List[int] = [tree.labels for tree in batch]
+                labels: torch.autograd.Variable = torch.autograd.Variable(
+                    torch.tensor(flatten(labels_list), dtype=torch.long, device=device)
+                )
+
+            # compute outputs and loss
+            outputs = model(batch, root_only)
+
+            accuracy_value: float = accuracy(outputs, labels)
+
+            accuracies.append(accuracy_value)
+
+    accuracy_value: float = np.mean(accuracies)
+    return accuracy_value
