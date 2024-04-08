@@ -16,7 +16,7 @@ def clean_text(text: str) -> str:
     Returns:
     - text (str): proecessed text.
     """
-    substitutions: Dict[str: str] = {
+    substitutions: Dict[str, str] = {
         '.': ' <PERIOD> ',
         ',': ' <COMMA> ',
         '"': ' <QUOTATION_MARK> ',
@@ -35,7 +35,7 @@ def clean_text(text: str) -> str:
     return text
 
 
-def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int: str]]:
+def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
     """
     Processed the input sentences to extrcat the list of words and tokenize the text.
 
@@ -44,11 +44,11 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int: str]]:
 
     Returns:
     - trimmed_words (List[str]): list of trimmed (filtered) words.
-    - correspondences (Dict[int: str]): association of word index in tokens and the index of the sentence that
+    - correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     """
     padding: str = " <PADDING> "
-    correspondences: Dict[int: str] = {}
+    correspondences: Dict[int, str] = {}
 
     text: str = padding.join(sentences)
     text = clean_text(text)
@@ -69,13 +69,13 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int: str]]:
     return trimmed_words, correspondences
 
 
-def plot_embeddings(model, int_to_vocab, viz_words=400, figsize=(16, 16)) -> None:
+def plot_embeddings(model, int_to_vocab: Dict[int, str], viz_words=400, figsize=(16, 16)) -> None:
     """
     Plots a subset of word embeddings in a 2D space using t-SNE.
 
     Args:
     - model (SkipGram): trained SkipGram model containing the embeddings.
-    - int_to_vocab (Dict[int: str]): Dictionary mapping word indices back to words.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping word indices back to words.
     - viz_words (int): Number of words to visualize.
     - figsize (Tuple[int]): Size of the figure for the plot.
 

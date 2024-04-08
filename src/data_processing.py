@@ -5,6 +5,7 @@ import random
 import spacy
 import re
 import csv
+import subprocess
 from math import sqrt
 
 try:
@@ -13,7 +14,7 @@ except ImportError:
     from utils import tokenize
 
 
-def load_and_preprocess_data(txt_infile: str, csv_infile: str) -> Tuple[List[str], List[str], Dict[int: str]]:
+def load_and_preprocess_data(txt_infile: str, csv_infile: str) -> Tuple[List[str], List[str], Dict[int, str]]:
     """
     Load text and csv data and preprocess it using a tokenize function.
 
@@ -24,7 +25,7 @@ def load_and_preprocess_data(txt_infile: str, csv_infile: str) -> Tuple[List[str
     Returns:
     - sentences (List[str]): list of correctly processed sentences fomr both files.
     - tokens (List[str]): list of preprocessed and tokenized words from the input data.
-    - correspondences (Dict[int: str]): association of word index in tokens and the index of the sentence that
+    - correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     """
     sentences: List[str] = preprocess_text(txt_infile, csv_infile)
@@ -110,7 +111,7 @@ def clean_sentence(sentence: str) -> str:
     Returns:
     - sentence (str): cleaned sentence.
     """
-    substitutions: dict[str: str] = {
+    substitutions: Dict[str, str] = {
         " '": "'",
         " n'": "n'",
         "`` ": "",
@@ -166,7 +167,7 @@ def filter_sentence(sentences: List[str]) -> List[str]:
     return filtered_sentences
 
 
-def create_lookup_tables(words: List[str]) -> Tuple[Dict[str: int], Dict[int: str]]:
+def create_lookup_tables(words: List[str]) -> Tuple[Dict[str, int], Dict[int, str]]:
     """
     Creates lookup tables for vocabulary.
 
@@ -174,21 +175,21 @@ def create_lookup_tables(words: List[str]) -> Tuple[Dict[str: int], Dict[int: st
     - words (List[str]): A list of words from which to create vocabulary.
 
     Returns:
-    - vocab_to_int (Dict[str: int]): dictionary that maps words to integers.
-    - vocab_to_int (Dict[int: str]): dictionary that maps integers to words.
+    - vocab_to_int (Dict[str, int]): dictionary that maps words to integers.
+    - vocab_to_int (Dict[int, str]): dictionary that maps integers to words.
     """
 
     word_counts: Counter = Counter(words)
 
     sorted_vocab: List[str] = sorted(word_counts, key=word_counts.get, reverse=True)
     
-    int_to_vocab: Dict[int: str] = {i: word for i, word in enumerate(sorted_vocab)}
-    vocab_to_int: Dict[str: int] = {word: i for i, word in enumerate(sorted_vocab)}
+    int_to_vocab: Dict[int, str] = {i: word for i, word in enumerate(sorted_vocab)}
+    vocab_to_int: Dict[str, int] = {word: i for i, word in enumerate(sorted_vocab)}
 
     return vocab_to_int, int_to_vocab
 
 
-def subsample_words(words: List[str], vocab_to_int: Dict[str, int], correspondences: Dict[int: str], threshold: float = 1e-5) -> Tuple[List[int], Dict[str: float], Dict[int: str]]:
+def subsample_words(words: List[str], vocab_to_int: Dict[str, int], correspondences: Dict[int, str], threshold: float = 1e-5) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
     """
     Perform subsampling on a list of word integers using PyTorch, aiming to reduce the 
     presence of frequent words according to Mikolov's subsampling technique. This method 
@@ -201,21 +202,21 @@ def subsample_words(words: List[str], vocab_to_int: Dict[str, int], corresponden
     Args:
     - words (List[str]): List of words to be subsampled.
     - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
-    - correspondences (Dict[int: str]): association of word index in tokens and the index of the sentence that
+    - correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     - threshold (float): Threshold parameter controlling the extent of subsampling.
   
     Returns:
     - train_words (List[int]): a list of integers representing the subsampled words, where some high-frequency words may be removed.
-    - freqs (Dict[str: float]): associates each word with its frequency.
-    - sampled_correspondences (Dict[int: str]): association of word index in tokens and the index of the sentence that
+    - freqs (Dict[str, float]): associates each word with its frequency.
+    - sampled_correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     """
-    sampled_correspondences: Dict[int: str] = {}
+    sampled_correspondences: Dict[int. str] = {}
     int_words: List[int] = [vocab_to_int[word] for word in words]
 
     n_words: int = len(words)
-    freqs: Dict[str: float] = {word: freq/n_words for (word, freq) in Counter(words).items()}
+    freqs: Dict[str, float] = {word: freq/n_words for (word, freq) in Counter(words).items()}
     train_words: List[int] = []
 
     index: int = 0
@@ -241,6 +242,7 @@ def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int) -> List[str]:
     - neighbours (List[str]): neighbours of the target word.
     """
     if idx < 0 or idx >= len(tree):
+        print(idx)
         return []
     
     target: spacy.tokens.token.Token = tree[idx]
@@ -249,11 +251,10 @@ def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int) -> List[str]:
     for token in tree:
         if token != target and (token.head == target or target.head == token) and token.dep_ not in ["det", "prep"]:
             neighbours.add(token.text.lower())
-    
     return list(neighbours)
 
 
-def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc, word_idx: int, vocab_to_int: Dict[str: int], window_size: int = 3) -> List[str]:
+def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc, word_idx: int, vocab_to_int: Dict[str, int], window_size: int = 2) -> List[str]:
     """
     Gets related words with the target word. Relationships include nearby words and dependent words.
 
@@ -284,11 +285,11 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
         neighbour: str = re.sub(r"[^a-zA-Z]", "", neighbour)
         if neighbour in vocab_to_int.keys():
             target_words.add(vocab_to_int[neighbour])
-
+    
     return list(target_words)
 
 
-def get_batches(words: List[int], sampled_correspondences: Dict[int: str], sentences: List[str], batch_size: int, vocab_to_int: Dict[str: int], window_size: int = 5):
+def get_batches(words: List[int], sampled_correspondences: Dict[int, str], sentences: List[str], batch_size: int, vocab_to_int: Dict[str, int], window_size: int = 5):
     """Generate batches of word pairs for training.
 
     This function creates a generator that yields tuples of (inputs, targets),
@@ -299,7 +300,7 @@ def get_batches(words: List[int], sampled_correspondences: Dict[int: str], sente
 
     Args:
     - words (List[int]): list of integer-encoded words from the dataset.
-    - sampled_correspondences (Dict[int: str]): association of word index in tokens and the index of the sentence that
+    - sampled_correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     - sentences (List[str]): list of correctly processed sentences fomr both files.
     - batch_size (int): number of words in each batch.
@@ -310,8 +311,8 @@ def get_batches(words: List[int], sampled_correspondences: Dict[int: str], sente
     - inputs (List[int]): contains input words (repeated for each of their context words).
     - targets (List[int]): contains the corresponding target context words.
     """
-    nlp: spacy.language.Language = spacy.load("en_core_web_sm")
-    dependency_trees: Dict[int: spacy.tokens.doc.Doc] = {}
+    nlp: spacy.language.Language = get_dependency_model()
+    dependency_trees: Dict[int, spacy.tokens.doc.Doc] = {}
 
     for idx in range(0, len(words), batch_size):
         new_words: List[int] = words[idx: idx + batch_size]
@@ -320,7 +321,7 @@ def get_batches(words: List[int], sampled_correspondences: Dict[int: str], sente
         for i, word in enumerate(new_words):
             new_index: int = idx + i
 
-            word_idx, sentence_idx = sampled_correspondences[new_index].split("_")
+            sentence_idx, word_idx = sampled_correspondences[new_index].split("_")
             if sentence_idx not in dependency_trees.keys():
                 dependency_tree: spacy.tokens.doc.Doc = nlp(sentences[int(sentence_idx)])
                 dependency_trees[sentence_idx] = dependency_tree
@@ -330,7 +331,19 @@ def get_batches(words: List[int], sampled_correspondences: Dict[int: str], sente
             new_targets: List[int] = get_target(words, new_index, dependency_tree, int(word_idx), vocab_to_int, window_size)
             inputs.extend([word] * len(new_targets))
             targets.extend(new_targets)
+
         yield inputs, targets
+
+
+def get_dependency_model() -> spacy.language.Language:
+    model_name: str = "en_core_web_sm"
+    try:
+        nlp: spacy.language.Language = spacy.load(model_name)
+    except:
+        subprocess.run(["python", "-m", "spacy", "download", model_name])
+        nlp: spacy.language.Language = spacy.load(model_name)
+    
+    return nlp
 
 
 def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid_window: int = 100, device: str = 'cpu'):

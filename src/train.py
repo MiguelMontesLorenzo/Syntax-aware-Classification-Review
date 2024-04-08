@@ -11,10 +11,10 @@ except ImportError:
 
 def train_skipgram(model: SkipGramNeg,
                    words: List[int],
-                   sampled_correspondences: Dict[int: str],
+                   sampled_correspondences: Dict[int, str],
                    sentences: List[str],
-                   int_to_vocab: Dict[int: str],
-                   vocab_to_int: Dict[str: int], 
+                   int_to_vocab: Dict[int, str],
+                   vocab_to_int: Dict[str, int], 
                    batch_size: int = 512, 
                    epochs: int = 5,
                    learning_rate: float = 0.003, 
@@ -27,10 +27,10 @@ def train_skipgram(model: SkipGramNeg,
     Args:
     - model (SkipGram): SkipGram model to be trained.
     - words (List[int]): list of words (integers) to train on.
-    - sampled_correspondences (Dict[int: str]): association of word index in tokens and the index of the sentence that
+    - sampled_correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     - sentences (List[str]): list of correctly processed sentences fomr both files.
-    - int_to_vocab (Dict[int: str]): dictionary mapping integers back to vocabulary words.
+    - int_to_vocab (Dict[int, str]): dictionary mapping integers back to vocabulary words.
     - batch_size (int): size of each batch of input and target words.
     - epochs (int): The number of epochs to train for.
     - learning_rate (float): learning rate for the optimizer.
