@@ -6,7 +6,9 @@ import spacy
 import re
 import csv
 import subprocess
+
 from math import sqrt
+from torch.utils.data import Dataset, DataLoader
 
 try:
     from src.utils import tokenize
@@ -46,7 +48,8 @@ def preprocess_text(txt_infile: str, csv_infile: str) -> List[str]:
     Returns:
     - sentences (List[str]): list of correctly processed sentences fomr both files.
     """
-    with open(txt_infile, "r") as file:
+    encoding = "utf-8"
+    with open(txt_infile, "r", encoding=encoding) as file:
         text: List[str] = file.readlines()
         new_text: List[str] = remove_index_elements(text)
 
@@ -59,8 +62,6 @@ def preprocess_text(txt_infile: str, csv_infile: str) -> List[str]:
             if len(filtered_sentence_list) > 0:
                 sentences.extend(filtered_sentence_list)
     
-
-    encoding = "utf-8"
     with open(csv_infile, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         
@@ -254,7 +255,7 @@ def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int) -> List[str]:
     return list(neighbours)
 
 
-def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc, word_idx: int, vocab_to_int: Dict[str, int], window_size: int = 2) -> List[str]:
+def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc, word_idx: int, vocab_to_int: Dict[str, int], window_size: int, context_length: int) -> List[str]:
     """
     Gets related words with the target word. Relationships include nearby words and dependent words.
 
@@ -271,22 +272,30 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
     """
     
     target_words: Set[str] = set()
-    n_words: int = len(words)
-    window_size: int = random.randint(1, window_size)
-
-    for i in range(1, window_size + 1):
-        if idx - i >= 0 and words[idx - i] != "<PADDING>":
-            target_words.add(words[idx - i])
-        if idx + i < n_words and words[idx + i] != "<PADDING>":
-            target_words.add(words[idx + i])
 
     neighbours: List[str] = get_neighbours(dependency_tree, word_idx)
     for neighbour in neighbours:
         neighbour: str = re.sub(r"[^a-zA-Z]", "", neighbour)
         if neighbour in vocab_to_int.keys():
             target_words.add(vocab_to_int[neighbour])
+
+    n_words: int = len(words)
+    window_size: int = random.randint(1, window_size)
+
+    for i in range(1, window_size + 1):
+        if idx - i >= 0 and words[idx - i] != "padding":
+            target_words.add(words[idx - i])
+        if idx + i < n_words and words[idx + i] != "padding":
+            target_words.add(words[idx + i])
     
-    return list(target_words)
+    target_words: List[str] = list(target_words)
+    
+    while len(target_words) < context_length:
+        target_words.append(vocab_to_int["padding"])
+    
+    target_words = target_words[:context_length]
+
+    return target_words
 
 
 def get_batches(words: List[int], sampled_correspondences: Dict[int, str], sentences: List[str], batch_size: int, vocab_to_int: Dict[str, int], window_size: int = 5):
@@ -311,8 +320,6 @@ def get_batches(words: List[int], sampled_correspondences: Dict[int, str], sente
     - inputs (List[int]): contains input words (repeated for each of their context words).
     - targets (List[int]): contains the corresponding target context words.
     """
-    nlp: spacy.language.Language = get_dependency_model()
-    dependency_trees: Dict[int, spacy.tokens.doc.Doc] = {}
 
     for idx in range(0, len(words), batch_size):
         new_words: List[int] = words[idx: idx + batch_size]
@@ -333,17 +340,6 @@ def get_batches(words: List[int], sampled_correspondences: Dict[int, str], sente
             targets.extend(new_targets)
 
         yield inputs, targets
-
-
-def get_dependency_model() -> spacy.language.Language:
-    model_name: str = "en_core_web_sm"
-    try:
-        nlp: spacy.language.Language = spacy.load(model_name)
-    except:
-        subprocess.run(["python", "-m", "spacy", "download", model_name])
-        nlp: spacy.language.Language = spacy.load(model_name)
-    
-    return nlp
 
 
 def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid_window: int = 100, device: str = 'cpu'):
@@ -380,3 +376,92 @@ def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid
     similarities: torch.Tensor = dot_product / (norms_valid * norms_embed)
 
     return valid_indices, similarities
+
+
+class EmbeddingsDataset(Dataset):
+    def __init__(self, tokens: List[str], sentences: List[str], correspondences: Dict[int, str], vocab_to_int: Dict[str, int], nlp: spacy.language.Language, window_size: int = 3) -> None:
+        """
+        Initialize the dataset with the text data, a vocabulary-to-integer mapping, and the context size.
+
+        Args:
+        - tokens (List[str]): the list of preprocessed and tokenized words from the text data.
+            vocab_to_int (Dict[str, int]): A dictionary mapping words to integers.
+            context_size (int): The number of words to include in the context.
+        """
+        self.words: List[str] = tokens
+        self.sentences: List[str] = sentences
+        self.correspondences: Dict[int, str] = correspondences
+        self.vocab_to_int: Dict[str, int] = vocab_to_int
+        self.window_size: int = window_size
+        self.nlp: spacy.language.Language = nlp
+        self.trees: Dict[int, spacy.tokens.doc.Doc] = {}
+        self.context_length: int = 12
+
+    def __len__(self) -> int:
+        """Return the number of items in the dataset."""
+        return len(self.words)
+
+    def __getitem__(self, idx) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Return a single item from the dataset.
+
+        Args:
+            idx (int): The index of the item.
+
+        Returns:
+            A tuple of context and target, both converted to integer representations.
+        """
+        word: int = self.words[idx]
+        tree_idx, word_idx = self.correspondences[idx].split("_")
+        tree_idx: int = int(tree_idx)
+
+        if tree_idx not in self.trees:
+            dependency_tree: spacy.tokens.doc.Doc = self.nlp(self.sentences[tree_idx])
+            self.trees[tree_idx] = dependency_tree
+        else:
+            dependency_tree = self.trees[tree_idx]
+                
+        new_targets: List[int] = get_target(self.words, idx, dependency_tree, int(word_idx), self.vocab_to_int, self.window_size, self.context_length)
+        input_tensor: torch.Tensor = torch.tensor([word] * len(new_targets))
+        targets_tensor: torch.Tensor = torch.tensor(new_targets)
+
+        return input_tensor, targets_tensor
+
+
+def generate_data_loader(tokens: list[int], sentences: List[str], correspondences: (Dict[int, str]), batch_size: int, vocab_to_int: Dict[str, int]):
+    """
+    Load data, preprocess, create lookup tables, generate datasets, and create data loaders.
+
+    Args:
+        infile (str): Path to the input file containing text data.
+        context_size (int): The size of the context window for the CBOW dataset.
+        batch_size (int): Batch size for the data loaders.
+        start_token (str):  A character used as the start token for each word.
+        end_token (str): A character used as the end token for each word.
+        train_pct (float): Percentage of training samples from dataset. 
+
+    Returns:
+        tuple: A tuple containing the training and testing DataLoader instances, vocabulary size, and the lookup tables.
+    """
+    # Generate Dataset
+    print(f"Creating dataset...")
+    nlp: spacy.language.Language = get_dependency_model()
+    embeddings_dataset = EmbeddingsDataset(tokens, sentences, correspondences, vocab_to_int, nlp, window_size=3)
+    print("Dataset created.")
+
+    print(f"Creating dataloaders with batch size = {batch_size}...")
+    dataloader = DataLoader(embeddings_dataset, batch_size=batch_size,
+                                              shuffle=False, drop_last=True, num_workers=4)
+    print("Dataloader created.")
+
+    return dataloader
+
+
+def get_dependency_model() -> spacy.language.Language:
+    model_name: str = "en_core_web_sm"
+    try:
+        nlp: spacy.language.Language = spacy.load(model_name)
+    except:
+        subprocess.run(["python", "-m", "spacy", "download", model_name])
+        nlp: spacy.language.Language = spacy.load(model_name)
+    return nlp

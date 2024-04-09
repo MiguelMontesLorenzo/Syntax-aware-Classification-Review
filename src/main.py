@@ -1,12 +1,13 @@
 import torch
+from torch.utils.data import DataLoader
 import os
 try:
-    from data_processing import load_and_preprocess_data, create_lookup_tables, subsample_words
+    from data_processing import load_and_preprocess_data, create_lookup_tables, subsample_words, generate_data_loader
     from skipgram import SkipGramNeg
     from train import train_skipgram
     from utils import plot_embeddings, save_model
 except:
-    from src.data_processing import load_and_preprocess_data, create_lookup_tables, subsample_words
+    from src.data_processing import load_and_preprocess_data, create_lookup_tables, subsample_words, generate_data_loader
     from src.skipgram import SkipGramNeg
     from src.train import train_skipgram
     from src.utils import plot_embeddings, save_model
@@ -18,12 +19,12 @@ def main():
     csv_file_path: str = "data/IMDB Dataset.csv"
     print(f"File path set to {txt_file_path}")
     print(f"File path set to {csv_file_path}")
-    
+
     embedding_dim: int = 300
     batch_size: int = 512
     epochs: int = 5
     learning_rate: float = 0.003
-    window_size: int = 5
+    window_size: int = 3
     print_every: int = 1500
     runs_folder: str = "runs"
     model_filename: str = "skipgram_dep_model.pth"
@@ -38,11 +39,14 @@ def main():
     print("Step 2: Creating lookup tables for vocabulary...")
     vocab_to_int, int_to_vocab = create_lookup_tables(tokens)
     print(f"Created vocabulary with {len(vocab_to_int)} unique words.")
-    
+
     if train_model:
         print("Step 3: Subsampling frequent words...")
         train_words, freqs, sampled_correspondences = subsample_words(tokens, vocab_to_int, correspondences)
         print(f"Subsampled words to {len(train_words)} training examples.")
+
+        print("Step 4: Creating DataLoader...")
+        dataloader: DataLoader = generate_data_loader(train_words, sentences, sampled_correspondences, batch_size, vocab_to_int)
 
         # Calculate the noise distribution for negative sampling
         print("Calculating noise distribution for negative sampling...")
@@ -50,19 +54,19 @@ def main():
         unigram_dist = word_freqs / word_freqs.sum()
         noise_dist = torch.tensor(unigram_dist ** 0.75 / torch.sum(unigram_dist ** 0.75)).to(device)
 
-        print("Step 4: Initializing the SkipGram model...")
+        print("Step 5: Initializing the SkipGram model...")
         model = SkipGramNeg(len(vocab_to_int), embedding_dim, noise_dist=noise_dist).to(device)
         print("Model initialized.")
 
-        print("Step 5: Training the model...")
-        train_skipgram(model, train_words, sampled_correspondences, sentences, int_to_vocab, vocab_to_int, batch_size, epochs, learning_rate, window_size, print_every, device)
+        print("Step 6: Training the model...")
+        train_skipgram(model, dataloader, sampled_correspondences, sentences, int_to_vocab, vocab_to_int, batch_size, epochs, learning_rate, window_size, print_every, device)
         print("Training completed.")
 
-        print("Step 6: Saving the model...")
+        print("Step 7: Saving the model...")
         save_model(model, model_path)
         print(f"Model saved at {model_path}")
 
-        print("Step 6: Visualizing the word embeddings...")
+        print("Step 8: Visualizing the word embeddings...")
     else:
         print("Step 3: Loading train model...")
         model: SkipGramNeg = SkipGramNeg(len(vocab_to_int), embedding_dim).to(device)

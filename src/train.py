@@ -1,5 +1,6 @@
 import torch
 import torch.optim as optim
+from torch.utils.data import DataLoader
 from typing import List, Dict
 
 try:
@@ -10,7 +11,7 @@ except ImportError:
     from data_processing import get_batches, cosine_similarity
 
 def train_skipgram(model: SkipGramNeg,
-                   words: List[int],
+                   dataloader: DataLoader,
                    sampled_correspondences: Dict[int, str],
                    sentences: List[str],
                    int_to_vocab: Dict[int, str],
@@ -47,11 +48,11 @@ def train_skipgram(model: SkipGramNeg,
     # Training loop
     for epoch in range(epochs):
         
-        for input_words, target_words in get_batches(words, sampled_correspondences, sentences, batch_size, vocab_to_int, window_size):
+        for input_words, target_words in dataloader:
             steps += 1
             # Convert inputs and context words into tensors
-            inputs = torch.LongTensor(input_words)
-            targets = torch.LongTensor(target_words)
+            inputs = torch.LongTensor(input_words.view(-1))
+            targets = torch.LongTensor(target_words.view(-1))
             inputs, targets = inputs.to(device), targets.to(device)
 
             # input, output, and noise vectors

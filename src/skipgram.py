@@ -128,7 +128,6 @@ class NegativeSamplingLoss(nn.Module):
         Returns:
         - total (torch.Tensor): tensor containing the average loss for the batch.
         """
-
         input_vectors: torch.Tensor = input_vectors.reshape(input_vectors.size(0), input_vectors.size(1), 1)
         output_vectors: torch.Tensor = output_vectors.reshape(input_vectors.size(0), 1, input_vectors.size(1))
         

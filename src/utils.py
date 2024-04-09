@@ -47,7 +47,7 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
     - correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
     word belongs to.
     """
-    padding: str = " <PADDING> "
+    padding: str = " <padding> "
     correspondences: Dict[int, str] = {}
 
     text: str = padding.join(sentences)
@@ -66,6 +66,7 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
                 trimmed_words.append(word)
                 correspondences[index] = f"{i}_{j}"
                 index += 1
+
     return trimmed_words, correspondences
 
 
