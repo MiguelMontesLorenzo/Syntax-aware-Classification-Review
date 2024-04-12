@@ -67,13 +67,23 @@ def main() -> None:
 
     # Define loss function and optimizer
     loss: torch.nn.Module = torch.nn.CrossEntropyLoss()
-    optimizer: torch.optim.Optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer: torch.optim.Optimizer = torch.optim.Adagrad(model.parameters(), lr=lr)
 
     # Learning rate scheduler
     scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
     for epoch in tqdm(range(epochs)):
-        train(model, batch_size, train_data, device, optimizer, loss, writer, epoch, name=name)
+        train(
+            model,
+            batch_size,
+            train_data,
+            device,
+            optimizer,
+            loss,
+            writer,
+            epoch,
+            name=name,
+        )
         val(model, batch_size, val_data, device, loss, writer, epoch)
         # Update the scheduler
         scheduler.step()
