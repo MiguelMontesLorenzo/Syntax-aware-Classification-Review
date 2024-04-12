@@ -3,6 +3,7 @@ from src.RecursiveModel.utils import get_batch, flatten, accuracy
 import numpy as np
 from typing import List
 from src.RecursiveModel.treebank import Tree
+
 # from src.RecursiveModel.utils import Hook
 from torch.utils.tensorboard import SummaryWriter
 
@@ -126,8 +127,8 @@ def val(
             # add metrics to vectors
             losses.append(loss_value.item())
 
-            # write on tensorboard
-            writer.add_scalar("val/loss", np.mean(losses), epoch)
+        # write on tensorboard
+        writer.add_scalar("val/loss", np.mean(losses), epoch)
 
 
 def test(
