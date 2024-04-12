@@ -30,7 +30,9 @@ def main() -> None:
     output_size: int = 5
     step_size: int = 20
     gamma: float = 0.1
-    simple_RNN = True
+    simple_RNN: bool = True
+    patience: int = 10
+    best_val_loss: float = float("inf")
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -39,7 +41,7 @@ def main() -> None:
 
     # Load training, validation and test data
     train_data: List[Tree] = load_trees("train")
-    test_data: List[Tree] = load_trees("test")
+    # test_data: List[Tree] = load_trees("test")
     val_data: List[Tree] = load_trees("dev")
 
     word2index: Dict[str, int]
@@ -84,7 +86,17 @@ def main() -> None:
             epoch,
             name=name,
         )
-        val(model, batch_size, val_data, device, loss, writer, epoch)
+        val_loss: float = val(model, batch_size, val_data, device, loss, writer, epoch)
+
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            no_improvement = 0
+        else:
+            no_improvement += 1
+            if no_improvement >= patience:
+                print(f"No improvement for {patience} epochs. Early stopping...")
+                break
+
         # Update the scheduler
         scheduler.step()
 

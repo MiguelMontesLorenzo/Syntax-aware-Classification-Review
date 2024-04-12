@@ -86,7 +86,7 @@ def val(
     writer: SummaryWriter,
     epoch: int,
     root_only=False,
-) -> None:
+) -> float:
     """
     Val step function.
 
@@ -101,7 +101,7 @@ def val(
     - root_only(bool).
 
     Returns:
-    - None
+    - val_loss (float): loss in that iteration
     """
     model.eval()
     losses: list[float] = []
@@ -129,6 +129,8 @@ def val(
 
         # write on tensorboard
         writer.add_scalar("val/loss", np.mean(losses), epoch)
+
+    return loss_value.item()
 
 
 def test(
