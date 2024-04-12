@@ -126,7 +126,7 @@ class RNTN(nn.Module):
 
             else:
                 # h: List = []
-                # for _, v in enumerate(self.V):
+                # for v in self.V:
                 #     h.append(
                 #         torch.matmul(
                 #             torch.matmul(children_stack, v),

@@ -19,19 +19,18 @@ def main() -> None:
     Returns:
     -None
     """
-    
 
     download_data()
 
     # hyperparameters
     hidden_size: int = 300
-    lr: float = 0.01
-    epochs: int = 5
-    batch_size: int = 64
+    lr: float = 0.001
+    epochs: int = 50
+    batch_size: int = 4
     output_size: int = 5
-    step_size: int = 50
+    step_size: int = 20
     gamma: float = 0.1
-    simple_RNN = False
+    simple_RNN = True
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
