@@ -109,7 +109,7 @@ class Tree:
         Returns:
         - words (List[str]): list of words corresponding to the sentence
         """
-        leaves: List[Node] = self.getLeaves(self.root)
+        leaves: List[Node] = self.get_leaves(self.root)
         words: List[str] = [node.word for node in leaves]
         return words
 
@@ -127,7 +127,7 @@ class Tree:
             return []
         return self.get_labels(node.left) + self.get_labels(node.right) + [node.label]
 
-    def getLeaves(self, node: Node) -> List[Node]:
+    def get_leaves(self, node: Node) -> List[Node]:
         """
         Gets the terminal nodes of the sentence starting with the node.
 
@@ -142,4 +142,4 @@ class Tree:
         if node.isLeaf:
             return [node]
         else:
-            return self.getLeaves(node.left) + self.getLeaves(node.right)
+            return self.get_leaves(node.left) + self.get_leaves(node.right)
