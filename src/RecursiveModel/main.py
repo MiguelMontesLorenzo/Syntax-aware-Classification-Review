@@ -19,16 +19,19 @@ def main() -> None:
     Returns:
     -None
     """
+    
+
     download_data()
 
     # hyperparameters
-    hidden_size: int = 64
+    hidden_size: int = 300
     lr: float = 0.01
-    epochs: int = 1
+    epochs: int = 5
     batch_size: int = 64
     output_size: int = 5
     step_size: int = 50
     gamma: float = 0.1
+    simple_RNN = False
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -45,13 +48,22 @@ def main() -> None:
 
     # define name and writer
     name: str = (
-        f"model_lr_{lr}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}"
+        f"model_lr_{lr}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}_simple_{simple_RNN}"
     )
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
 
+    with open(f"{name}.txt", "w") as file:
+        file.write("GRADIENTES")
+
+    print(device)
+
     # Define model
     model: RNTN = RNTN(
-        word2index=word2index, hidden_size=hidden_size, output_size=output_size
+        word2index=word2index,
+        hidden_size=hidden_size,
+        output_size=output_size,
+        simple_RNN=simple_RNN,
+        device=device,
     ).to(device)
 
     # Define loss function and optimizer
@@ -62,16 +74,16 @@ def main() -> None:
     scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
     for epoch in tqdm(range(epochs)):
-        train(model, batch_size, train_data, device, optimizer, loss, writer, epoch)
+        train(model, batch_size, train_data, device, optimizer, loss, writer, epoch, name=name)
         val(model, batch_size, val_data, device, loss, writer, epoch)
         # Update the scheduler
         scheduler.step()
 
     # Save model
-    save_model(model, name)
+    save_model(model, "best_model")
 
-    accuracy_value: float = test(model, batch_size, test_data, device)
-    print("Test accuracy:", accuracy_value)
+    # accuracy_value: float = test(model, batch_size, test_data, device)
+    # print("Test accuracy:", accuracy_value)
 
 
 if __name__ == "__main__":

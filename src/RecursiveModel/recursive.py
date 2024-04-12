@@ -34,7 +34,10 @@ class RNTN(nn.Module):
         """
         super().__init__()
         self.word2index: Dict[str, int] = word2index
-        self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size)
+        # We could add pretrained embeddings:
+        # self.embed = pretrained_model.embedding
+
+        self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(device)
         self.V: nn.ParameterList = nn.ParameterList(
             [
                 nn.Parameter(torch.randn(hidden_size * 2, hidden_size * 2))
@@ -112,30 +115,32 @@ class RNTN(nn.Module):
             recursive_tensor.update(self.tree_propagation(node.right))
 
             children_stack: torch.Tensor = torch.cat(
-                [recursive_tensor[node.left], recursive_tensor[node.right]], 1
+                [recursive_tensor[node.left], recursive_tensor[node.right]],
+                1,
             )
-
-            if self.simple_RNN:
-                h_tensor = torch.Tensor(0)
-
-            else:
-                h: List = []
-                for _, v in enumerate(self.V):
-
-                    h.append(
-                        torch.matmul(
-                            torch.matmul(children_stack, v),
-                            children_stack.transpose(0, 1),
-                        )
-                    )
-
-                h_tensor: torch.Tensor = torch.cat(h, 1)
 
             Wx: torch.Tensor = torch.matmul(children_stack, self.W)
 
-            current_vector: torch.Tensor = F.tanh(h_tensor + Wx + self.b)
+            if self.simple_RNN:
+                current_vector: torch.Tensor = F.tanh(Wx + self.b)
+
+            else:
+                # h: List = []
+                # for _, v in enumerate(self.V):
+                #     h.append(
+                #         torch.matmul(
+                #             torch.matmul(children_stack, v),
+                #             children_stack.transpose(0, 1),
+                #         )
+                #     )
+
+                h: List = [torch.matmul(torch.matmul(children_stack, v), children_stack.transpose(0,1)) for v in self.V]
+                h_tensor: torch.Tensor = torch.cat(h, 1)
+
+                current_vector: torch.Tensor = F.tanh(h_tensor + Wx + self.b)
 
         recursive_tensor[node] = current_vector
+
         return recursive_tensor
 
     def forward(self, trees: List[Tree], root_only: bool = False) -> torch.Tensor:
@@ -164,6 +169,7 @@ class RNTN(nn.Module):
                 propagated.extend(recursive_tensor_list)
 
         propagated: torch.Tensor = torch.cat(propagated)
+
         output: torch.Tensor = F.log_softmax(torch.matmul(propagated, self.W_out))
-        print(output.size())
+
         return output

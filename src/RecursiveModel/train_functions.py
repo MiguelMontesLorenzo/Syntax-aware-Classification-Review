@@ -3,6 +3,7 @@ from src.RecursiveModel.utils import get_batch, flatten, accuracy
 import numpy as np
 from typing import List
 from src.RecursiveModel.treebank import Tree
+# from src.RecursiveModel.utils import Hook
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -16,6 +17,7 @@ def train(
     writer: SummaryWriter,
     epoch: int,
     root_only: bool = False,
+    name: str = "grads",
 ) -> None:
     """
     Train step function.
@@ -34,6 +36,9 @@ def train(
     Returns:
     - None
     """
+    with open(f"{name}.txt", "a") as file:
+        file.write(f"\nepoch: {str(epoch)}")
+        file.write("\n------------------------")
 
     model.train()
     losses: list[float] = []
@@ -56,9 +61,16 @@ def train(
 
         optimizer.zero_grad()
         loss.backward()
+
+        with open(f"{name}.txt", "a") as file:
+            file.write(f"\n{str(model.W.grad)}")
+
         optimizer.step()
 
         losses.append(loss.item())
+
+    with open(f"{name}.txt", "a") as file:
+        file.write("\n------------------------")
 
     # Log training loss to TensorBoard
     writer.add_scalar("train/loss", np.mean(losses), epoch)
@@ -155,11 +167,12 @@ def test(
                 )
 
             # compute outputs and loss
-            outputs = model(batch, root_only)
+            outputs = model(batch, root_only).to(device)
 
             accuracy_value: float = accuracy(outputs, labels)
 
             accuracies.append(accuracy_value)
 
-    accuracy_value: float = np.mean(accuracies)
-    return accuracy_value
+    acc: float = torch.mean(torch.tensor(accuracies))
+
+    return acc
