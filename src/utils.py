@@ -35,7 +35,7 @@ def clean_text(text: str) -> str:
     return text
 
 
-def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
+def tokenize(sentences: List[str], text: str) -> Tuple[List[str], Dict[int, str]]:
     """
     Processed the input sentences to extrcat the list of words and tokenize the text.
 
@@ -44,13 +44,11 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
 
     Returns:
     - trimmed_words (List[str]): list of trimmed (filtered) words.
-    - correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
+    - correspondences (Dict[int, Tuple(int)]): association of word index in tokens and the index of the sentence that
     word belongs to.
     """
-    padding: str = " <padding> "
     correspondences: Dict[int, str] = {}
 
-    text: str = padding.join(sentences)
     text = clean_text(text)
     words: List[str] = text.split()
     word_counts: Counter = Counter(words)
@@ -64,7 +62,7 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
             # Remove all words with 4 or fewer occurences
             if word_counts.get(word, 6) > 4:
                 trimmed_words.append(word)
-                correspondences[index] = f"{i}_{j}"
+                correspondences[index] = (i, j)
                 index += 1
 
     return trimmed_words, correspondences

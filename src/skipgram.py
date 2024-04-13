@@ -50,8 +50,7 @@ class SkipGramNeg(nn.Module):
         Returns:
         - input_vectors (torch.Tensor): tensor containing the input vectors for the given words.
         """
-        input_vectors: torch.Tensor = self.in_embed(input_words)
-        return input_vectors
+        return self.in_embed(input_words)
 
     def forward_output(self, output_words: torch.Tensor) -> torch.Tensor:
         """
@@ -63,9 +62,7 @@ class SkipGramNeg(nn.Module):
         Returns:
         - output_vectors (torch.Tensor): tensor containing the output vectors for the given words.
         """
-        # TODO
-        output_vectors: torch.Tensor = self.out_embed(output_words)
-        return output_vectors
+        return self.out_embed(output_words)
 
     def forward_noise(self, batch_size: int, n_samples: int) -> torch.Tensor:
         """

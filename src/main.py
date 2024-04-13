@@ -22,12 +22,11 @@ def main():
 
     embedding_dim: int = 300
     batch_size: int = 512
-    epochs: int = 5
+    epochs: int = 4
     learning_rate: float = 0.003
-    window_size: int = 3
     print_every: int = 1500
     runs_folder: str = "runs"
-    model_filename: str = "skipgram_dep_model.pth"
+    model_filename: str = "skipgram_dep_model_no_det.pth"
     model_path: str = os.path.join(runs_folder, model_filename)
     train_model: bool = True
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -46,20 +45,21 @@ def main():
         print(f"Subsampled words to {len(train_words)} training examples.")
 
         print("Step 4: Creating DataLoader...")
-        dataloader: DataLoader = generate_data_loader(train_words, sentences, sampled_correspondences, batch_size, vocab_to_int)
+        dataloader: DataLoader = generate_data_loader(train_words, sentences, sampled_correspondences, batch_size, vocab_to_int, int_to_vocab)
 
         # Calculate the noise distribution for negative sampling
         print("Calculating noise distribution for negative sampling...")
         word_freqs = torch.tensor(sorted(freqs.values(), reverse=True))
         unigram_dist = word_freqs / word_freqs.sum()
-        noise_dist = torch.tensor(unigram_dist ** 0.75 / torch.sum(unigram_dist ** 0.75)).to(device)
+        # noise_dist = torch.tensor(unigram_dist ** 0.75 / torch.sum(unigram_dist ** 0.75)).to(device)
+        noise_dist = (unigram_dist ** 0.75 / torch.sum(unigram_dist ** 0.75)).detach().clone().to(device)
 
         print("Step 5: Initializing the SkipGram model...")
         model = SkipGramNeg(len(vocab_to_int), embedding_dim, noise_dist=noise_dist).to(device)
         print("Model initialized.")
 
         print("Step 6: Training the model...")
-        train_skipgram(model, dataloader, sampled_correspondences, sentences, int_to_vocab, vocab_to_int, batch_size, epochs, learning_rate, window_size, print_every, device)
+        train_skipgram(model, dataloader, int_to_vocab, epochs, learning_rate, print_every, device)
         print("Training completed.")
 
         print("Step 7: Saving the model...")

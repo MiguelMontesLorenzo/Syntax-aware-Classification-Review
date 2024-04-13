@@ -5,21 +5,16 @@ from typing import List, Dict
 
 try:
     from src.skipgram import SkipGramNeg, NegativeSamplingLoss  
-    from src.data_processing import get_batches, cosine_similarity
+    from src.data_processing import cosine_similarity
 except ImportError:
     from skipgram import SkipGramNeg, NegativeSamplingLoss
-    from data_processing import get_batches, cosine_similarity
+    from data_processing import cosine_similarity
 
 def train_skipgram(model: SkipGramNeg,
                    dataloader: DataLoader,
-                   sampled_correspondences: Dict[int, str],
-                   sentences: List[str],
                    int_to_vocab: Dict[int, str],
-                   vocab_to_int: Dict[str, int], 
-                   batch_size: int = 512, 
                    epochs: int = 5,
                    learning_rate: float = 0.003, 
-                   window_size: int = 5, 
                    print_every: int = 1500,
                    device: str = "cpu"):
     """
@@ -53,6 +48,7 @@ def train_skipgram(model: SkipGramNeg,
             # Convert inputs and context words into tensors
             inputs = torch.LongTensor(input_words.view(-1))
             targets = torch.LongTensor(target_words.view(-1))
+
             inputs, targets = inputs.to(device), targets.to(device)
 
             # input, output, and noise vectors
