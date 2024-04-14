@@ -77,7 +77,7 @@ class SkipGramNeg(nn.Module):
         """
         if self.noise_dist is None:
             # Sample words uniformly
-            noise_dist: torch.Tensor = torch.ones(self.n_vocab)
+            noise_dist: torch.Tensor = torch.ones(self.vocab_size)
         else:
             noise_dist: torch.Tensor = self.noise_dist
 
@@ -90,7 +90,7 @@ class SkipGramNeg(nn.Module):
         # Reshape output vectors to size (batch_size, n_samples, n_embed)
         noise_vectors: torch.Tensor = self.out_embed(noise_words)
 
-        noise_vectors: torch.Tensor = noise_vectors.reshape(batch_size, n_samples, self.n_embed)
+        noise_vectors: torch.Tensor = noise_vectors.reshape(batch_size, n_samples, self.embed_dim)
 
         return noise_vectors
 

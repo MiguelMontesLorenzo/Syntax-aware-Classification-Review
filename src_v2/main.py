@@ -17,9 +17,9 @@ def main():
 
     embedding_dim: int = 300
     batch_size: int = 512
-    epochs: int = 5
-    learning_rate: float = 0.003
-    print_every: int = 1500
+    epochs: int = 25
+    learning_rate: float = 0.001
+    print_every: int = 1000
     runs_folder: str = "runs"
     model_filename: str = "skipgram_dep_model_small.pth"
     model_path: str = os.path.join(runs_folder, model_filename)
@@ -31,10 +31,31 @@ def main():
     print(f"Loaded and preprocessed {len(tokens)} tokens.")
     print(f"Created vocabulary with {len(vocab_to_int)} unique words.")
 
+    # ind = 2620
+    # word = tokens[ind]
+    # ora, indw = correspondences[ind]
+    # sentence = sentences[ora]
+
+    # print("Oracion", sentence)
+    # print("Palabra", word)
+    # print()
+
     if train_model:
         print("Step 3: Subsampling frequent words...")
         train_words, freqs, sampled_correspondences = subsample_words(tokens, vocab_to_int, correspondences)
         print(f"Subsampled words to {len(train_words)} training examples.")
+
+        # ind = 9000
+        # word = train_words[ind]
+        # word_str = int_to_vocab[word]
+        # ora, indw = sampled_correspondences[ind]
+        # sentence = sentences[ora]
+
+        # print()
+        # print("Oracion", sentence)
+        # print("Palabra", word_str)
+
+        # assert False
 
         print("Step 4: Creating DataLoader...")
         dataloader: DataLoader = generate_data_loader(train_words, sentences, sampled_correspondences, batch_size, vocab_to_int, int_to_vocab)

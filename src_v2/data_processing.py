@@ -215,7 +215,7 @@ def filter_sentence(sentences: List[str]) -> List[str]:
 
 
 
-def subsample_words(words: List[str], vocab_to_int: Dict[str, int], correspondences: Dict[int, str], threshold: float = 1.0) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
+def subsample_words(words: List[str], vocab_to_int: Dict[str, int], correspondences: Dict[int, str], threshold: float = 5e-1) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
     """
     Perform subsampling on a list of word integers using PyTorch, aiming to reduce the 
     presence of frequent words according to Mikolov's subsampling technique. This method 
@@ -239,12 +239,16 @@ def subsample_words(words: List[str], vocab_to_int: Dict[str, int], corresponden
     word belongs to.
     """
     sampled_correspondences: Dict[int, str] = {}
+    aux_correspondences: Dict[int, str] = {}
     int_words: List[int] = []
     new_words: List[str] = []
-    for word in words:
+    aux_index: int = 0
+    for i, word in enumerate(words):
         if word in vocab_to_int:
             new_words.append(word)
             int_words.append(vocab_to_int[word])
+            aux_correspondences[aux_index] = correspondences[i]
+            aux_index += 1
 
     n_words: int = len(new_words)
     freqs: Dict[str, float] = {word: freq/n_words for (word, freq) in Counter(new_words).items()}
@@ -254,13 +258,13 @@ def subsample_words(words: List[str], vocab_to_int: Dict[str, int], corresponden
     for i, word in enumerate(new_words):
         if random.random() < sqrt(threshold/freqs[word]):
             train_words.append(int_words[i])
-            sampled_correspondences[index] = correspondences[i]
+            sampled_correspondences[index] = aux_correspondences[i]
             index += 1
 
     return train_words, freqs, sampled_correspondences
 
 
-def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int) -> List[str]:
+def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int, print_idx) -> List[str]:
     """
     Obtains the neighbour words from the dependency tree. A word is considered neigbour
     if it has a direct or inverse relationship with the traget word.
@@ -277,11 +281,11 @@ def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int) -> List[str]:
         return []
     
     target: spacy.tokens.token.Token = tree[idx]
-    # print("Target", target)
+    # print("Target", print_idx, target)
     neighbours: Set[str] = set()
 
     for token in tree:
-        if token != target and (token.head == target or target.head == token) and token.dep_ not in ["det", "prep"]:
+        if token != target and (token.head == target or target.head == token) and token.dep_ not in ["det", "prep", "cc"]:
             neighbours.add(token.text.lower())
             try:
                 if token.head.head == target:
@@ -293,7 +297,7 @@ def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int) -> List[str]:
                     neighbours.add(token.text.lower())
             except:
                 pass
-    # print("Neighbour", neighbours)
+    # print("Neighbours", print_idx, neighbours)
     return list(neighbours)
 
 
@@ -315,10 +319,10 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
     
     target_words: Set[str] = set()
 
-    neighbours: List[str] = get_neighbours(dependency_tree, word_idx)
+    neighbours: List[str] = get_neighbours(dependency_tree, word_idx, idx)
     for neighbour in neighbours:
         neighbour: str = re.sub(r"[^a-zA-Z]", "", neighbour)
-        if neighbour in vocab_to_int.keys():
+        if neighbour in vocab_to_int:
             target_words.add(vocab_to_int[neighbour])
 
     n_words: int = len(words)
@@ -334,7 +338,7 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
             target_words_print.append(int_to_vocab[words[idx + i]])
     
     target_words: List[str] = list(target_words)
-    # print("Nearby words", target_words_print)
+    # print("Nearby words", idx, target_words_print)
     
     while len(target_words) < context_length:
         target_words.append(vocab_to_int["padding"])
@@ -345,7 +349,7 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
 
 
 class EmbeddingsDataset(Dataset):
-    def __init__(self, tokens: List[str], sentences: List[str], correspondences: Dict[int, str], nlp: spacy.language.Language, vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str], window_size: int = 3) -> None:
+    def __init__(self, tokens: List[str], sentences: List[str], correspondences: Dict[int, str], nlp: spacy.language.Language, vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str], window_size: int = 5) -> None:
         """
         Initialize the dataset with the text data, a vocabulary-to-integer mapping, and the context size.
 
@@ -387,14 +391,14 @@ class EmbeddingsDataset(Dataset):
         if tree_idx not in self.trees:
             dependency_tree: spacy.tokens.doc.Doc = self.nlp(self.sentences[tree_idx])
             self.trees[tree_idx] = dependency_tree
-        else:
+        else:   
             dependency_tree = self.trees[tree_idx]
                 
         new_targets: List[int] = get_target(self.words, idx, dependency_tree, word_idx, self.vocab_to_int, self.window_size, self.context_length, self.int_to_vocab)
         input_tensor: torch.Tensor = torch.tensor([word] * len(new_targets))
 
         # targets = [self.int_to_vocab[target] for target in new_targets]
-        # print(idx, targets)
+        # print("Targets:", idx, targets)
         # print()
 
         targets_tensor: torch.Tensor = torch.tensor(new_targets)
@@ -402,7 +406,7 @@ class EmbeddingsDataset(Dataset):
         return input_tensor, targets_tensor
 
 
-def generate_data_loader(tokens: list[int], sentences: List[str], correspondences: (Dict[int, str]), batch_size: int, vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str]):
+def generate_data_loader(tokens: List[int], sentences: List[str], correspondences: Dict[int, str], batch_size: int, vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str]):
     """
     Load data, preprocess, create lookup tables, generate datasets, and create data loaders.
 
