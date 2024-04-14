@@ -5,6 +5,7 @@ from src.models import RNN
 from src.train_functions import train_step, val_step, t_step
 
 import torch
+from torch import nn
 import os
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
@@ -46,13 +47,25 @@ def main() -> None:
 
     vocab_size: int = len(vocab_to_int)
 
+    truncated_embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=hidden_size)
+
     pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=hidden_size)
     model_path: str = os.path.join(pretrained_folder, pretrained_model_filename)
-    pretrained_model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+    state_dict = torch.load(model_path, map_location=torch.device('cpu'))
+
+    embedding_key = 'in_embed.weight'  # This key depends on how the model was saved
+
+    # Extract the original embedding weights from the state dictionary
+    original_embedding_weights = state_dict[embedding_key]
+    truncated_embedding_weights = original_embedding_weights[:vocab_size, :]
+    truncated_embedding.weight.data.copy_(truncated_embedding_weights)
+
 
     # Freeze pretrained model parameters
     for param in pretrained_model.parameters():
         param.requires_grad = False
+
+    assert False
 
     # define name and writer
     name: str = (
