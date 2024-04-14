@@ -40,7 +40,7 @@ def load_and_preprocess_data() -> Tuple[List[str], List[str], Dict[int, Tuple[in
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
     sentences = obtain_sentences(train_data, val_data, test_data)
-    print(sentences)
+
     tokens, correspondences = tokenize(sentences)
 
     return sentences, tokens, correspondences, vocab_to_int, int_to_vocab
@@ -133,17 +133,11 @@ def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int
     val_data: List[Tree] = load_trees("dev")
     test_data: List[Tree] = load_trees("test")
 
-    # Clean data
-
-
-    # Create list with all the vocabulary words
+    # Create list with all the Trees
     whole_data: List[Tree] = []
     whole_data.extend(train_data)
     whole_data.extend(val_data)
     whole_data.extend(test_data)
-
-    
-
 
     vocab_to_int: Dict[str, int]
     int_to_vocab: Dict[int, str]
@@ -164,8 +158,7 @@ def obtain_sentences(train_data, val_data, test_data) -> List[str]:
     for tree in whole_data:
         # New sentence
         sentence: str = " ".join(tree.get_words())
-        cleaned_sentence: str = clean_sentence(sentence)
-        splitted_sentences: List[str] = split_sentence(cleaned_sentence)
+        splitted_sentences: List[str] = split_sentence(sentence)
         filtered_sentences: List[str] = filter_sentence(splitted_sentences)
 
         if len(filtered_sentences) > 0:
@@ -174,39 +167,8 @@ def obtain_sentences(train_data, val_data, test_data) -> List[str]:
     return sentences
 
 
-def clean_sentence(sentence: str) -> str:
-    """
-    Replaces incorrectly formatted characters.
-    
-    Args:
-    - sentence (str): sentence to be cleaned.
-
-    Returns:
-    - sentence (str): cleaned sentence.
-    """
-    substitutions: Dict[str, str] = {
-        " '": "'",
-        " n'": "n'",
-        "`` ": "",
-        "''": "",
-        "` ": "",
-        "' ": " ",
-        "-lrb- ": "",
-        "-rrb- ": "",
-        "\'s": "'s"
-    }
-
-    for key, value in substitutions.items():
-        sentence = sentence.replace(key, value)
-    return sentence
-
-
-
 def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    words: List[str] = []
-    for tree in data:
-        for word in tree.get_words():
-            words.append(word.lower())
+    words: List[str] = [word for tree in data for word in tree.get_words()]
 
     word_counts: Counter = Counter(words)
     sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)
@@ -277,14 +239,19 @@ def subsample_words(words: List[str], vocab_to_int: Dict[str, int], corresponden
     word belongs to.
     """
     sampled_correspondences: Dict[int, str] = {}
-    int_words: List[int] = [vocab_to_int[word] for word in words]
+    int_words: List[int] = []
+    new_words: List[str] = []
+    for word in words:
+        if word in vocab_to_int:
+            new_words.append(word)
+            int_words.append(vocab_to_int[word])
 
-    n_words: int = len(words)
-    freqs: Dict[str, float] = {word: freq/n_words for (word, freq) in Counter(words).items()}
+    n_words: int = len(new_words)
+    freqs: Dict[str, float] = {word: freq/n_words for (word, freq) in Counter(new_words).items()}
     train_words: List[int] = []
 
     index: int = 0
-    for i, word in enumerate(words):
+    for i, word in enumerate(new_words):
         if random.random() < sqrt(threshold/freqs[word]):
             train_words.append(int_words[i])
             sampled_correspondences[index] = correspondences[i]
