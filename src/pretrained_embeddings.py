@@ -35,11 +35,6 @@ class SkipGramNeg(nn.Module):
         # Define embedding layers for input and output words
         self.in_embed: nn.Embedding = nn.Embedding(self.vocab_size, self.embed_dim)
         self.out_embed: nn.Embedding = nn.Embedding(self.vocab_size, self.embed_dim)
-
-        self.linear: nn.Linear = nn.Linear(embed_dim, vocab_size)
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        # embedded: torch.Tensor = self.in_embed(inputs)
-        embedded: torch.Tensor = torch.sum(self.in_embed(inputs), dim=1)
-        output: torch.Tensor = self.linear(embedded)
-        return output
+    def forward(self, inputs):
+        return self.in_embed(inputs)

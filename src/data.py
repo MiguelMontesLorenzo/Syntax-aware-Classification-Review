@@ -46,20 +46,7 @@ class RecurrentDataset(Dataset):
 
 def generate_dataloaders(batch_size=128, num_workers=4) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int]]:
     
-    # Load training, validation and test data
-    train_data: List[Tree] = load_trees("train")
-    val_data: List[Tree] = load_trees("dev")
-    test_data: List[Tree] = load_trees("test")
-
-    # Create list with all the vocabulary words
-    whole_data: List[Tree] = []
-    whole_data.extend(train_data)
-    whole_data.extend(val_data)
-    whole_data.extend(test_data)
-
-    vocab_to_int: Dict[str, int]
-    int_to_vocab: Dict[int, str]
-    vocab_to_int, int_to_vocab = create_lookup_tables(whole_data)
+    train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
     train_dataset: Dataset = RecurrentDataset(train_data, vocab_to_int)
     val_dataset = RecurrentDataset(val_data, vocab_to_int)
@@ -77,14 +64,29 @@ def generate_dataloaders(batch_size=128, num_workers=4) -> Tuple[DataLoader, Dat
     )
 
     return train_dataloader, val_dataloader, test_dataloader, vocab_to_int
+
+
+def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]:
+    # Load training, validation and test data
+    train_data: List[Tree] = load_trees("train")
+    val_data: List[Tree] = load_trees("dev")
+    test_data: List[Tree] = load_trees("test")
+
+    # Create list with all the Trees
+    whole_data: List[Tree] = []
+    whole_data.extend(train_data)
+    whole_data.extend(val_data)
+    whole_data.extend(test_data)
+
+    vocab_to_int: Dict[str, int]
+    int_to_vocab: Dict[int, str]
+    vocab_to_int, int_to_vocab = create_lookup_tables(whole_data)
+
+    return train_data, val_data, test_data, vocab_to_int, int_to_vocab
     
 
 def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    words: List[str] = []
-    for tree in data:
-        for word in tree.get_words():
-            cleaned_word: str = "".join([char for char in word if char.isalpha()]).lower()
-            words.append(cleaned_word)
+    words: List[str] = [word for tree in data for word in tree.get_words()]
 
     word_counts: Counter = Counter(words)
     sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)

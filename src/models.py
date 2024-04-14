@@ -32,7 +32,7 @@ class RNN(nn.Module):
         """
         super().__init__()
         self.embedding = pretrained_model.in_embed
-        self.embedding_dim = pretrained_model.embed_size
+        self.embedding_dim = pretrained_model.embed_dim
 
         self.rnn: nn.LSTM = nn.LSTM(self.embedding_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=bidirectional)
 

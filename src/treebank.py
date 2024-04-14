@@ -1,8 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 class Node:
-    def __init__(self, label: int, word: str, parent=None) -> None:
+    def __init__(self, label: int, word: str = None, parent=None) -> None:
         """
         Initialize Node class.
         Args:
@@ -87,11 +87,11 @@ class Tree:
             split += 1
 
         # New node
-        node: Node = Node(int(tokens[1]), parent)
+        node: Node = Node(int(tokens[1]), parent=parent)
 
         # Leaf Node
         if countOpen == 0:
-            node.word = "".join(tokens[2:-1]).lower()
+            node.word = clean_sentence("".join(tokens[2:-1]).lower())
             node.isLeaf = True
             return node
 
@@ -143,3 +143,23 @@ class Tree:
             return [node]
         else:
             return self.get_leaves(node.left) + self.get_leaves(node.right)
+
+
+def clean_sentence(sentence: str) -> str:
+    """
+    Replaces incorrectly formatted characters.
+
+    Args:
+    - sentence (str): sentence to be cleaned.
+    Returns:
+    - sentence (str): cleaned sentence.
+    """
+
+    substitutions: Dict[str, str] = {
+        "``": "",
+        "''": "",
+    }
+
+    for key, value in substitutions.items():
+        sentence = sentence.replace(key, value)
+    return sentence
