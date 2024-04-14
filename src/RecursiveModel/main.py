@@ -24,7 +24,7 @@ def main() -> None:
 
     # hyperparameters
     hidden_size: int = 300
-    lr: float = 0.001
+    lr: float = 0.02
     epochs: int = 50
     batch_size: int = 4
     output_size: int = 5
