@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 class Node:
@@ -162,8 +162,6 @@ def clean_sentence(sentence: str) -> str:
         "''": "",
         "` ": "",
         "' ": " ",
-        "-lrb- ": "",
-        "-rrb- ": "",
         "'s": "'s",
     }
 
