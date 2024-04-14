@@ -160,5 +160,4 @@ cython_debug/
 #.idea/
 
 # Pretrained models and data
-/pretrained
 /data_sst

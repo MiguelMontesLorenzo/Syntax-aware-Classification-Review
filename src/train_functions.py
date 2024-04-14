@@ -42,6 +42,10 @@ def train_step(
         labels: torch.Tensor = labels.to(device)
 
         outputs: torch.Tensor = model(sentences, text_len)
+
+        print("Labels sahpe", labels.shape)
+        print("outputs", outputs.shape)
+        print()
         loss_value: torch.nn.Module = loss(outputs, labels.long())
         
         accuracy_measure: torch.Tensor = accuracy(outputs, labels)

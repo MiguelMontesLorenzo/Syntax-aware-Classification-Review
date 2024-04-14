@@ -20,6 +20,8 @@ def main() -> None:
     Returns:
     -None
     """
+    # Constants
+    NUM_CLASSES: int = 5
 
     # hyperparameters
     hidden_size: int = 300
@@ -29,7 +31,7 @@ def main() -> None:
     output_size: int = 5
     step_size: int = 20
     gamma: float = 0.1
-    simple_RNN: bool = True
+    
     patience: int = 10
     best_val_loss: float = float("inf")
 
@@ -43,33 +45,24 @@ def main() -> None:
     # empty nohup file
     open("nohup.out", "w").close()
 
-    train_loader, val_loader, test_loader, vocab_to_int = generate_dataloaders()
+    train_loader, val_loader, test_loader, vocab_to_int = generate_dataloaders(batch_size=batch_size)
 
     vocab_size: int = len(vocab_to_int)
 
-    truncated_embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=hidden_size)
 
     pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=hidden_size)
     model_path: str = os.path.join(pretrained_folder, pretrained_model_filename)
     state_dict = torch.load(model_path, map_location=torch.device('cpu'))
 
-    embedding_key = 'in_embed.weight'  # This key depends on how the model was saved
-
-    # Extract the original embedding weights from the state dictionary
-    original_embedding_weights = state_dict[embedding_key]
-    truncated_embedding_weights = original_embedding_weights[:vocab_size, :]
-    truncated_embedding.weight.data.copy_(truncated_embedding_weights)
-
+    pretrained_model.load_pretrained_embeddings(state_dict["in_embed.weight"])
 
     # Freeze pretrained model parameters
     for param in pretrained_model.parameters():
         param.requires_grad = False
 
-    assert False
-
     # define name and writer
     name: str = (
-        f"model_lr_{learning_rate}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}_simple_{simple_RNN}"
+        f"model_lr_{learning_rate}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}"
     )
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
     
@@ -77,6 +70,7 @@ def main() -> None:
     model: RNN = RNN(
         pretrained_model=pretrained_model,
         hidden_dim=hidden_size,
+        num_classes=NUM_CLASSES,
         num_layers=1,
         bidirectional=True,
     ).to(device)
@@ -88,7 +82,7 @@ def main() -> None:
     # Learning rate scheduler
     scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
-    print(f"Training MLP model on {device}...")
+    print(f"Training Recurrent model on {device}...")
 
     # train loop
     for epoch in tqdm(range(epochs)):

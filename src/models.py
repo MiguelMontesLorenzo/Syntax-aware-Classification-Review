@@ -21,7 +21,7 @@ class RNN(nn.Module):
         num_layers (int): The number of layers in the LSTM.
     """
 
-    def __init__(self, pretrained_model: SkipGramNeg, hidden_dim: int, num_layers: int, bidirectional: bool = True) -> None:
+    def __init__(self, pretrained_model: SkipGramNeg, hidden_dim: int, num_classes: int, num_layers: int = 1, bidirectional: bool = True) -> None:
         """
         Initializes the RNN model with given embedding weights, hidden dimension, and number of layers.
 
@@ -33,10 +33,13 @@ class RNN(nn.Module):
         super().__init__()
         self.embedding = pretrained_model.in_embed
         self.embedding_dim = pretrained_model.embed_dim
+        self.bidirectional = bidirectional
+        self.hidden_dim = hidden_dim
 
         self.rnn: nn.LSTM = nn.LSTM(self.embedding_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=bidirectional)
 
-        self.fc: nn.Linear = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, 1)
+        # self.fc: nn.Linear = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, 1)
+        self.fc: nn.Linear = nn.Linear(hidden_dim, num_classes)
 
     def forward(self, x: torch.Tensor, text_lengths: torch.Tensor) -> torch.Tensor:
         """
@@ -51,11 +54,17 @@ class RNN(nn.Module):
         """
         embedded: torch.Tensor = self.embedding(x)
 
+        print("Shape embedded", embedded.shape)
+
         packed_embedded: torch.Tensor = nn.utils.rnn.pack_padded_sequence(embedded, text_lengths.cpu().numpy(), batch_first=True)
 
         packed_output, (hidden, cell) = self.rnn(packed_embedded)
 
         hidden: torch.Tensor = hidden[-1]
+
+        print("Shape hidden", hidden.shape)
+
+        # hidden = hidden.view(-1, self.hidden_dim * 2 if self.bidirectional else self.hidden_dim)
 
         outputs: torch.Tensor = self.fc(hidden).squeeze()
         return outputs
