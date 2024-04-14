@@ -163,3 +163,21 @@ def clean_sentence(sentence: str) -> str:
     for key, value in substitutions.items():
         sentence = sentence.replace(key, value)
     return sentence
+
+
+def load_trees(file: str) -> List[Tree]:
+    """
+    Loads training trees. Maps leaf node words to word ids.
+
+    Args:
+    - file (str): name of file with Stanford data.
+
+    Returns:
+    - trees (List[Tree]): trees from the data.
+    """
+    filename: str = "data_sst/trees/" + file + ".txt"
+    print(f"Loading {filename} trees...")
+    with open(filename, "r", encoding="utf-8") as file:
+        trees: List[Tree] = [Tree(line) for line in file.readlines()]
+
+    return trees

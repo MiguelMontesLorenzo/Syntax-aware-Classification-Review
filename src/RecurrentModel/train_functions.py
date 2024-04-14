@@ -1,12 +1,12 @@
 import torch
-from torch.utils.data import DataLoader
-from src.utils import accuracy
 import numpy as np
-from typing import List
-
-
-# from src.RecursiveModel.utils import Hook
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from typing import List
+try:
+    from src.RecurrentModel.utils import accuracy
+except ImportError:
+    from utils import accuracy
 
 
 def train_step(
@@ -17,21 +17,24 @@ def train_step(
     writer: SummaryWriter,
     epoch: int,
     device: torch.device,
-) -> None:
+) -> float:
     """
     This function computes the training step.
 
     Args:
-        model: pytorch model.
-        train_data: train dataloader.
-        loss: loss function.
-        optimizer: optimizer object.
-        writer: tensorboard writer.
-        epoch: epoch number.
-        device: device of model.
+    - model (torch.nn.Module): pytorch model.
+    - train_data (DataLoader): train dataloader.
+    - loss (torch.nn.Module): loss function.
+    - optimizer (torch.optim.Optimizer): optimizer object.
+    - writer (SummaryWriter): tensorboard writer.
+    - epoch (int): epoch number.
+    - device (torch.device): device of model.
+
+    Return:
+    - final_loss (float): average loss for the early stopping.
     """
 
-    # define metric lists
+    # Define metric lists
     losses: List[float] = []
     accuracies: List[float] = []
     
@@ -43,9 +46,9 @@ def train_step(
 
         outputs: torch.Tensor = model(sentences, text_len)
 
-        print("Labels sahpe", labels.shape)
-        print("outputs", outputs.shape)
-        print()
+        # print("Labels sahpe", labels.shape)
+        # print("outputs", outputs.shape)
+        # print()
         loss_value: torch.nn.Module = loss(outputs, labels.long())
         
         accuracy_measure: torch.Tensor = accuracy(outputs, labels)
@@ -56,10 +59,14 @@ def train_step(
 
         losses.append(loss_value.item())
         accuracies.append(accuracy_measure.item())
-        
+    
+    final_loss: float = float(np.mean(losses))
+
     # write on tensorboard
-    writer.add_scalar("train/loss", np.mean(losses), epoch)
+    writer.add_scalar("train/loss", final_loss, epoch)
     writer.add_scalar("train/accuracy", np.mean(accuracies), epoch)
+
+    return final_loss
 
 
 def val_step(
@@ -74,12 +81,15 @@ def val_step(
     This function computes the validation step.
 
     Args:
-        model: pytorch model.
-        val_data: dataloader of validation data.
-        loss: loss function.
-        writer: tensorboard writer.
-        epoch: epoch number.
-        device: device of model.
+    - model (torch.nn.Module): pytorch model.
+    - val_data (DataLoader): val dataloader.
+    - loss (torch.nn.Module): loss function.
+    - writer (SummaryWriter): tensorboard writer.
+    - epoch (int): epoch number.
+    - device (torch.device): device of model.
+
+    Return:
+    - None
     """
     
     model.eval()
@@ -93,6 +103,10 @@ def val_step(
             labels: torch.Tensor = labels.to(device)
 
             outputs: torch.Tensor = model(sentences, text_len)
+
+            # print("Labels sahpe", labels.shape)
+            # print("outputs", outputs.shape)
+            # print()
             loss_value: torch.nn.Module = loss(outputs, labels.long())
             
             accuracy_measure: torch.Tensor = accuracy(outputs, labels)
@@ -113,12 +127,12 @@ def t_step(
         This function computes the test step.
 
         Args:
-            model: pytorch model.
-            test_data: dataloader of test data.
-            device: device of model.
+        - model (torch.nn.Module): pytorch model.
+        - test_data (DataLoader): test dataloader.
+        - device (torch.device): device of model.
             
         Returns:
-            average accuracy.
+        - final_accuracy (float): average accuracy.
         """
 
         model.eval()

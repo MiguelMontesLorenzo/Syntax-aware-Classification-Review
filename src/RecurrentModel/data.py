@@ -2,12 +2,14 @@ import os
 import requests
 import zipfile
 import torch
-from typing import List, Dict, Tuple
-from src.treebank import Tree
-from src.utils import flatten
 from torch.utils.data import Dataset, DataLoader
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
+from typing import List, Dict, Tuple
+try:
+    from src.RecurrentModel.treebank import Tree, load_trees
+except ImportError:
+    from treebank import Tree, load_trees
 
 
 class RecurrentDataset(Dataset):
@@ -54,16 +56,16 @@ def generate_dataloaders(batch_size=128, num_workers=4) -> Tuple[DataLoader, Dat
 
     # Define dataloaders
     train_dataloader: DataLoader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn, drop_last=True
     )
     val_dataloader: DataLoader = DataLoader(
-        val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn
+        val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn, drop_last=True
     )
     test_dataloader: DataLoader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn
+        test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn, drop_last=True
     )
 
-    return train_dataloader, val_dataloader, test_dataloader, vocab_to_int
+    return train_dataloader, val_dataloader, test_dataloader, vocab_to_int, int_to_vocab
 
 
 def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]:
@@ -200,43 +202,3 @@ def download_data() -> None:
 
         # Extract the ZIP file
         extract_zip(zip_path, path)
-
-
-def load_trees(file: str) -> List[Tree]:
-    """
-    Loads training trees. Maps leaf node words to word ids.
-
-    Args:
-    - file (str)
-
-    Returns:
-    - None
-    """
-    filename: str = "data_sst/trees/" + file + ".txt"
-    print(f"Loading {filename} trees...")
-    with open(filename, "r", encoding="utf-8") as file:
-        trees: List[Tree] = [Tree(line) for line in file.readlines()]
-
-    return trees
-
-
-def load_vocab(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    """
-    Create the word2index and index2word dictionary from the trees.
-
-    Args:
-    - data (List[Tree]): list of trees with the data.
-
-    Returns:
-    word2index (Dict[str, int]): Convert word to a unique index
-    index2word (Dict[int, str]): Convert form index to string
-    """
-    vocab: List = list(set(flatten([t.get_words() for t in data])))
-    word2index: Dict[str, int] = {"<UNK>": 0}
-    for word in vocab:
-        if word not in word2index.keys():
-            word2index[word] = len(word2index)
-
-    index2word: Dict[int, str] = {v: k for k, v in word2index.items()}
-
-    return word2index, index2word
