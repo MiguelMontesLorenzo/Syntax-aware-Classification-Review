@@ -161,6 +161,7 @@ cython_debug/
 
 # Data folder
 data/
+data_sst/
 
 # Runs folder
 runs/
