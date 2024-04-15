@@ -84,7 +84,7 @@ def main(start_epoch: int = 0) -> None:
     # Learning rate scheduler
     scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
-    for epoch in tqdm(range(start_epoch, epochs)):
+    for epoch in tqdm(range(start_epoch, epochs), initial=start_epoch, total=epochs):
         train(
             model,
             batch_size,
