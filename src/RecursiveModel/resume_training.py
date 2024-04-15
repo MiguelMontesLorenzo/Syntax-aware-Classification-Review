@@ -9,12 +9,12 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import StepLR
-
+import os
 
 set_seed(42)
 
 
-def main() -> None:
+def main(start_epoch: int = 0) -> None:
     """
     Args:
     -None
@@ -67,6 +67,16 @@ def main() -> None:
         device=device,
     ).to(device)
 
+    if start_epoch > 0:
+        checkpoint_path = f"models/checkpoint_{start_epoch}"
+        if os.path.exists(checkpoint_path):
+            model.load_state_dict(torch.load(checkpoint_path))
+            print(f"Loaded checkpoint from epoch {start_epoch}")
+        else:
+            print(
+                f"Checkpoint file '{checkpoint_path}' not found. Training from scratch."
+            )
+
     # Define loss function and optimizer
     loss: torch.nn.Module = torch.nn.CrossEntropyLoss()
     optimizer: torch.optim.Optimizer = torch.optim.Adagrad(model.parameters(), lr=lr)
@@ -74,7 +84,7 @@ def main() -> None:
     # Learning rate scheduler
     scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
-    for epoch in tqdm(range(epochs)):
+    for epoch in tqdm(range(start_epoch, epochs)):
         train(
             model,
             batch_size,
@@ -99,16 +109,7 @@ def main() -> None:
 
         # Save checkpoints
         if (epoch + 1) % 5 == 0:
-            if (epoch + 1) % 1 == 0:
-                torch.save(
-                    {
-                        "epoch": epoch,
-                        "model_state_dict": model.state_dict(),
-                        "optimizer_state_dict": optimizer.state_dict(),
-                        "loss": loss,
-                    },
-                    f"models/checkpoint_{epoch+1}",
-                )
+            save_model(model, f"checkpoint_epoch_{epoch + 1}")
 
         # Update the scheduler
         scheduler.step()
@@ -121,4 +122,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(1)
