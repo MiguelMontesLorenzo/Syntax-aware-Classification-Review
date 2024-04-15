@@ -21,12 +21,11 @@ except ImportError:
     from treebank import Tree
 
 
-def load_and_preprocess_data() -> Tuple[List[str], List[str], Dict[int, Tuple[int, int]], Dict[str, int], Dict[int, str]]:
+def load_and_preprocess_data(csv_file: str) -> Tuple[List[str], List[str], Dict[int, Tuple[int, int]], Dict[str, int], Dict[int, str]]:
     """
     Load text and csv data and preprocess it using a tokenize function.
 
     Args:
-    - txt_infile (str): Path to the input txt file containing text data form Penn Treebank movie reviews.
     - csv_infile (str): Path to the input csv file containing data form IMBD movie reviews.
 
     Returns:
@@ -34,12 +33,18 @@ def load_and_preprocess_data() -> Tuple[List[str], List[str], Dict[int, Tuple[in
     - tokens (List[str]): list of preprocessed and tokenized words from the input data.
     - correspondences (Dict[int, Tuple[int, int]]): association of word index in tokens and the index of the sentence that
     word belongs to.
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
     """
     download_data()
 
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
-    sentences = obtain_sentences(train_data, val_data, test_data)
+    csv_sentences: List[str] = process_csv(csv_file)
+
+    vocab_to_int, int_to_vocab = update_lookup_tables(vocab_to_int, int_to_vocab)
+    tree_sentences: List[str] = obtain_sentences(train_data, val_data, test_data)
+    sentences: List[str] = csv_sentences.extend(tree_sentences)
 
     tokens, correspondences = tokenize(sentences)
 
@@ -128,6 +133,20 @@ def load_trees(file: str) -> List[Tree]:
 
 
 def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]:
+    """
+    Loads data from Stanford Dataset trees and creates lookup tables for mapping
+    integers to vocab and viceversa.
+
+    Args:
+    - None
+
+    Returns:
+    - train_data (List[Tree]): training examples of Stanford trees.
+    - val_data (List[Tree]): validation examples of Stanford trees.
+    - test_data (List[Tree]): testing examples of Stanford trees.
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
+    """
     # Load training, validation and test data
     train_data: List[Tree] = load_trees("train")
     val_data: List[Tree] = load_trees("dev")
@@ -147,6 +166,17 @@ def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int
 
 
 def obtain_sentences(train_data, val_data, test_data) -> List[str]:
+    """
+    Extracts vocabulary sentences from Stanford trees.
+    
+    Args:
+    - train_data (List[Tree]): training examples of Stanford trees.
+    - val_data (List[Tree]): validation examples of Stanford trees.
+    - test_data (List[Tree]): testing examples of Stanford trees.
+
+    Returns:
+    - sentences (List[str]): sentences from data.
+    """
     sentences: List[str] = []
 
     # Create list with all the vocabulary words
@@ -168,6 +198,17 @@ def obtain_sentences(train_data, val_data, test_data) -> List[str]:
 
 
 def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
+    """
+    Creates lookup tables that match vocabulary words to unique indexes and their
+    correpondence the other way around.
+
+    Args:
+    - data (List[Tree]): all the trees from the Stanford Dataset.
+
+    Returns:
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
+    """
     words: List[str] = [word for tree in data for word in tree.get_words()]
 
     word_counts: Counter = Counter(words)
@@ -178,6 +219,79 @@ def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, st
     return vocab_to_int, int_to_vocab
 
 
+def update_lookup_tables(vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str], sentences: List[str]) -> Tuple[Dict[str, int], Dict[int, str]]:
+    """
+    Updates previously built dictionaries with the vocabulary from the IMBD movies reviews.
+
+    Args:
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
+    - sentences (List[str]): sentences from the IMBD reviews.
+
+    Returns:
+    - vocab_to_int (Dict[str, int]): updated dictionary mapping words to unique integers.
+    - int_to_vocab (Dict[int, str]): updated dictionary mapping unique integers to words.
+    """
+    new_words: List[str] = [word for sentence in sentences for word in sentence.split() if word not in vocab_to_int]
+
+    n_words: int = len(vocab_to_int)
+    for i, word in enumerate(new_words):
+        index: int = n_words + i
+        vocab_to_int[word] = index
+        int_to_vocab[index] = word
+    
+    return vocab_to_int, int_to_vocab
+
+
+def process_csv(csv_file: str) -> List[str]:
+    """
+    Process the csv infile with the reviews from the IMBD movies reviews to obtain
+    the processed sentences.
+
+    Args:
+    - csv_file (str): path to the csv file.
+
+    Returns:
+    - sentences (List[str]): sentences from the IMBD reviews.
+    """
+    encoding: str = "utf-8"
+    sentences: list = []
+    with open(csv_file, "r", newline="", encoding=encoding) as csv_file:
+        csv_reader = csv.reader(csv_file)
+
+        # The second element is the score, irrelevant for the task
+        first_sentences: List[str] = [review[0] for review in csv_reader]
+
+        for elem in first_sentences:
+            cleaned_sentence = clean_sentence(elem)
+            splitted_sentences: List[str] = split_sentence(cleaned_sentence)
+            filtered_sentences: List[str] = filter_sentence(splitted_sentences)
+
+            if len(filtered_sentences) > 0:
+                sentences.extend(filtered_sentences)
+        return sentences
+
+
+def clean_sentence(sentence: str) -> str:
+    """
+    Replaces incorrectly formatted characters.
+
+    Args:
+    - sentence (str): sentence to be cleaned.
+    Returns:
+    - sentence (str): cleaned sentence.
+    """
+
+    substitutions: Dict[str, str] = {
+        "``": "",
+        "''": "",
+    }
+
+    for key, value in substitutions.items():
+        sentence = sentence.replace(key, value)
+    return sentence.lower()
+
+
 def split_sentence(sentence: str) -> List[str]:
     """
     Splits compound sentences into simpler ones where dependency parsing is possible.
@@ -186,18 +300,18 @@ def split_sentence(sentence: str) -> List[str]:
     - sentence (str): sentence to be splitted.
 
     Returns:
-    - new_sentence_list (List[str]): sentences splitted from the original one.
+    - new_sentences (List[str]): sentences splitted from the original one.
     """
     splitters: List[str] = [" and ", ".", ",", ";", "--", ":", "!", "?"]
     previous_sentence_list: List[str] = [sentence]
 
     for splitter in splitters:
-        new_sentence_list: List[str] = []
+        new_sentences: List[str] = []
         for sentence in previous_sentence_list:
-            new_sentence_list.extend([splitted.strip() for splitted in sentence.split(splitter)])
-        previous_sentence_list = new_sentence_list
+            new_sentences.extend([splitted.strip() for splitted in sentence.split(splitter)])
+        previous_sentence_list = new_sentences
 
-    return new_sentence_list
+    return new_sentences
 
 
 def filter_sentence(sentences: List[str]) -> List[str]:

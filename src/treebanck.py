@@ -149,3 +149,21 @@ class Tree:
             return self.get_leaves(node.left) + self.get_leaves(node.right)
 
 
+def clean_sentence(sentence: str) -> str:
+    """
+    Replaces incorrectly formatted characters.
+
+    Args:
+    - sentence (str): sentence to be cleaned.
+    Returns:
+    - sentence (str): cleaned sentence.
+    """
+
+    substitutions: Dict[str, str] = {
+        "``": "",
+        "''": "",
+    }
+
+    for key, value in substitutions.items():
+        sentence = sentence.replace(key, value)
+    return sentence

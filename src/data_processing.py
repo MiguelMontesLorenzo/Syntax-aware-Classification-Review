@@ -122,22 +122,17 @@ def clean_sentence(sentence: str) -> str:
     """
     substitutions: Dict[str, str] = {
         " '": "'",
-        " n'": "n'",
         "`` ": "",
         "''": "",
         "` ": "",
         "' ": " ",
-        "-LRB- ": "",
-        "-RRB- ": "",
-        " ?": "",
-        " !": "",
         "<br /><br />": " ",
         "\'s": "'s"
     }
 
     for key, value in substitutions.items():
         sentence = sentence.replace(key, value)
-    return sentence
+    return sentence.lower()
 
 
 def split_sentence(sentence: str) -> List[str]:

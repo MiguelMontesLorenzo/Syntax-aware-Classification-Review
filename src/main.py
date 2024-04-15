@@ -12,6 +12,7 @@ except:
     from src.train import train_skipgram
     from src.utils import plot_embeddings, save_model
 
+
 def main():
     print("Starting the SkipGram training pipeline...")
 
