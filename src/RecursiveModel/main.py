@@ -97,6 +97,10 @@ def main() -> None:
                 print(f"No improvement for {patience} epochs. Early stopping...")
                 break
 
+        # Save checkpoints
+        if (epoch + 1) % 5 == 0:
+            save_model(model, f"checkpoint_epoch_{epoch + 1}")
+
         # Update the scheduler
         scheduler.step()
 

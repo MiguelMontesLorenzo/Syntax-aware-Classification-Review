@@ -3,6 +3,7 @@ from typing import List
 import torch
 from src.RecursiveModel.treebank import Tree
 import os
+import numpy as np
 
 
 def get_batch(batch_size: int, data: List[Tree]):
