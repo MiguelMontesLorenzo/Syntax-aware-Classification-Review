@@ -3,7 +3,11 @@ from typing import List
 from src.RecursiveModel.data import load_trees
 from src.RecursiveModel.treebank import Tree
 from src.RecursiveModel.recursive import RNTN
+from src.RecursiveModel.utils import set_seed
 import torch
+
+
+set_seed(42)
 
 
 def main() -> None:

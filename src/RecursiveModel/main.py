@@ -1,14 +1,17 @@
 from src.RecursiveModel.data import download_data, load_trees, load_vocab
 from src.RecursiveModel.recursive import RNTN
-from src.RecursiveModel.train_functions import train, val, test
+from src.RecursiveModel.train_functions import train, val
 from src.RecursiveModel.treebank import Tree
-from src.RecursiveModel.utils import get_batch, flatten, save_model
+from src.RecursiveModel.utils import save_model, set_seed
 
 from typing import List, Dict
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import StepLR
+
+
+set_seed(42)
 
 
 def main() -> None:
@@ -52,9 +55,6 @@ def main() -> None:
         f"model_lr_{lr}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}_simple_{simple_RNN}"
     )
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
-
-    with open(f"{name}.txt", "w") as file:
-        file.write("GRADIENTES")
 
     print(device)
 
