@@ -13,3 +13,5 @@ if __name__ == "__main__":
     for tree in train_data:
         labels[tree.labels[-1]] += 1
     print(labels)
+    # print(train_data[39].get_words())
+    # print(train_data[39].labels)

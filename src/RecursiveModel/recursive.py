@@ -134,7 +134,12 @@ class RNTN(nn.Module):
                 #         )
                 #     )
 
-                h: List = [torch.matmul(torch.matmul(children_stack, v), children_stack.transpose(0,1)) for v in self.V]
+                h: List = [
+                    torch.matmul(
+                        torch.matmul(children_stack, v), children_stack.transpose(0, 1)
+                    )
+                    for v in self.V
+                ]
                 h_tensor: torch.Tensor = torch.cat(h, 1)
 
                 current_vector: torch.Tensor = F.tanh(h_tensor + Wx + self.b)
@@ -170,6 +175,8 @@ class RNTN(nn.Module):
 
         propagated: torch.Tensor = torch.cat(propagated)
 
-        output: torch.Tensor = F.log_softmax(torch.matmul(propagated, self.W_out))
+        output: torch.Tensor = F.log_softmax(
+            torch.matmul(propagated, self.W_out), dim=1
+        )
 
         return output
