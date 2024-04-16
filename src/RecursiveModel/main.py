@@ -28,13 +28,13 @@ def main() -> None:
     # hyperparameters
     hidden_size: int = 300
     lr: float = 0.02
-    epochs: int = 50
+    epochs: int = 100
     batch_size: int = 4
     output_size: int = 5
     step_size: int = 20
     gamma: float = 0.1
     simple_RNN: bool = True
-    patience: int = 10
+    patience: int = 20
     best_val_loss: float = float("inf")
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -84,7 +84,6 @@ def main() -> None:
             loss,
             writer,
             epoch,
-            name=name,
         )
         val_loss: float = val(model, batch_size, val_data, device, loss, writer, epoch)
 
@@ -99,6 +98,10 @@ def main() -> None:
 
         # Save checkpoints
         if (epoch + 1) % 5 == 0:
+            # create folder if it does not exist
+            if not os.path.isdir("models"):
+                os.makedirs("models")
+
             torch.save(
                 {
                     "epoch": epoch,

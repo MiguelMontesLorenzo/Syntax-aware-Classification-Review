@@ -17,8 +17,7 @@ def train(
     loss_function: torch.nn.Module,
     writer: SummaryWriter,
     epoch: int,
-    root_only: bool = False,
-    name: str = "grads",
+    root_only: bool = False
 ) -> None:
     """
     Train step function.
@@ -37,12 +36,10 @@ def train(
     Returns:
     - None
     """
-    with open(f"{name}.txt", "a") as file:
-        file.write(f"\nepoch: {str(epoch)}")
-        file.write("\n------------------------")
 
     model.train()
     losses: list[float] = []
+    accuracies: List[float] = []
 
     for _, batch in enumerate(get_batch(batch_size, train_data)):
         if root_only:
@@ -63,18 +60,20 @@ def train(
         optimizer.zero_grad()
         loss.backward()
 
-        with open(f"{name}.txt", "a") as file:
-            file.write(f"\n{str(model.W.grad)}")
-
         optimizer.step()
 
         losses.append(loss.item())
 
-    with open(f"{name}.txt", "a") as file:
-        file.write("\n------------------------")
+        accuracy_value: float = accuracy(output, labels)
+
+        accuracies.append(accuracy_value)
+
+    acc: float = torch.mean(torch.tensor(accuracies))
+
 
     # Log training loss to TensorBoard
     writer.add_scalar("train/loss", np.mean(losses), epoch)
+    writer.add_scalar("train/accuracy", acc, epoch)
 
 
 def val(
@@ -105,6 +104,7 @@ def val(
     """
     model.eval()
     losses: list[float] = []
+    accuracies: List[float] = []
 
     with torch.no_grad():
         for _, batch in enumerate(get_batch(batch_size, val_data)):
@@ -127,8 +127,15 @@ def val(
             # add metrics to vectors
             losses.append(loss_value.item())
 
+            accuracy_value: float = accuracy(output, labels)
+
+            accuracies.append(accuracy_value)
+
+        acc: float = torch.mean(torch.tensor(accuracies))
+
         # write on tensorboard
         writer.add_scalar("val/loss", np.mean(losses), epoch)
+        writer.add_scalar("val/accuracy", acc, epoch)
 
     return loss_value.item()
 
