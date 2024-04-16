@@ -27,12 +27,13 @@ def main() -> None:
     """
     # Constants
     NUM_CLASSES: int = 5
+    EMBED_DIM: int = 300
 
     # Hyperparameters
     hidden_size: int = 300
-    learning_rate: float = 0.001
+    learning_rate: float = 1e-3
     epochs: int = 50
-    batch_size: int = 16
+    batch_size: int = 128
     step_size: int = 20
     gamma: float = 0.1
 
@@ -53,7 +54,7 @@ def main() -> None:
 
     vocab_size: int = len(vocab_to_int)
 
-    pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=hidden_size)
+    pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=EMBED_DIM)
     model_path: str = os.path.join(pretrained_folder, pretrained_model_filename)
     state_dict = torch.load(model_path, map_location=torch.device("cpu"))
 
@@ -69,7 +70,7 @@ def main() -> None:
     # name: str = (
     #     f"model_lr_{learning_rate}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}"
     # )
-    name: str = "dom_4"
+    name: str = "tue_1"
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
     
     # Define model
