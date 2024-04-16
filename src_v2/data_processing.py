@@ -15,10 +15,10 @@ from torch.utils.data import Dataset, DataLoader
 
 try:
     from src_v2.utils import tokenize
-    from src_v2.treebank import Tree
+    from src_v2.treebank import Tree, clean_sentence
 except ImportError:
     from utils import tokenize
-    from treebank import Tree
+    from treebank import Tree, clean_sentence
 
 
 def load_and_preprocess_data(csv_file: str) -> Tuple[List[str], List[str], Dict[int, Tuple[int, int]], Dict[str, int], Dict[int, str]]:
@@ -40,11 +40,11 @@ def load_and_preprocess_data(csv_file: str) -> Tuple[List[str], List[str], Dict[
 
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
-    csv_sentences: List[str] = process_csv(csv_file)
+    sentences: List[str] = process_csv(csv_file)
 
-    vocab_to_int, int_to_vocab = update_lookup_tables(vocab_to_int, int_to_vocab)
+    vocab_to_int, int_to_vocab = update_lookup_tables(vocab_to_int, int_to_vocab, sentences)
     tree_sentences: List[str] = obtain_sentences(train_data, val_data, test_data)
-    sentences: List[str] = csv_sentences.extend(tree_sentences)
+    sentences.extend(tree_sentences)
 
     tokens, correspondences = tokenize(sentences)
 
@@ -233,9 +233,12 @@ def update_lookup_tables(vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, s
     - int_to_vocab (Dict[int, str]): updated dictionary mapping unique integers to words.
     """
     new_words: List[str] = [word for sentence in sentences for word in sentence.split() if word not in vocab_to_int]
+    
+    word_counts: Counter = Counter(new_words)
+    sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)
 
     n_words: int = len(vocab_to_int)
-    for i, word in enumerate(new_words):
+    for i, word in enumerate(sorted_vocab):
         index: int = n_words + i
         vocab_to_int[word] = index
         int_to_vocab[index] = word
@@ -263,7 +266,7 @@ def process_csv(csv_file: str) -> List[str]:
         first_sentences: List[str] = [review[0] for review in csv_reader]
 
         for elem in first_sentences:
-            cleaned_sentence = clean_sentence(elem)
+            cleaned_sentence = clean_csv(elem)
             splitted_sentences: List[str] = split_sentence(cleaned_sentence)
             filtered_sentences: List[str] = filter_sentence(splitted_sentences)
 
@@ -272,19 +275,32 @@ def process_csv(csv_file: str) -> List[str]:
         return sentences
 
 
-def clean_sentence(sentence: str) -> str:
+def clean_csv(sentence: str) -> str:
     """
     Replaces incorrectly formatted characters.
-
+    
     Args:
     - sentence (str): sentence to be cleaned.
+
     Returns:
     - sentence (str): cleaned sentence.
     """
-
     substitutions: Dict[str, str] = {
-        "``": "",
+        "`` ": "",
         "''": "",
+        "` ": "",
+        "' ": " ",
+        " '": " ",
+        "<br /><br />": " ",
+        "\'s": "'s",
+        "/": " ",
+        "(": " ",
+        ")": " ",
+        '"': '',
+        "*": "",
+        "-": " ",
+        "<": "",
+        ">": ""
     }
 
     for key, value in substitutions.items():
@@ -329,7 +345,7 @@ def filter_sentence(sentences: List[str]) -> List[str]:
 
 
 
-def subsample_words(words: List[str], vocab_to_int: Dict[str, int], correspondences: Dict[int, str], threshold: float = 5e-1) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
+def subsample_words(words: List[str], vocab_to_int: Dict[str, int], correspondences: Dict[int, str], threshold: float = 6e-1) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
     """
     Perform subsampling on a list of word integers using PyTorch, aiming to reduce the 
     presence of frequent words according to Mikolov's subsampling technique. This method 
@@ -370,7 +386,7 @@ def subsample_words(words: List[str], vocab_to_int: Dict[str, int], corresponden
 
     index: int = 0
     for i, word in enumerate(new_words):
-        if random.random() < sqrt(threshold/freqs[word]):
+        if random.random() < sqrt(threshold/freqs[word] * 2):
             train_words.append(int_words[i])
             sampled_correspondences[index] = aux_correspondences[i]
             index += 1
@@ -430,7 +446,9 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
     Returns:
     - target_words (List[str]): list of words selected as traget words.
     """
-    
+    frecuent_words: Set[str] = {"the", "to", "of", "a", "if"}
+    words_to_remove: Set[str] = {vocab_to_int[word] for word in frecuent_words}
+    probability: float = 0.85
     target_words: Set[str] = set()
 
     neighbours: List[str] = get_neighbours(dependency_tree, word_idx, idx)
@@ -444,26 +462,35 @@ def get_target(words: List[int], idx: int, dependency_tree: spacy.tokens.doc.Doc
     target_words_print = []
 
     for i in range(1, window_size + 1):
-        if idx - i >= 0 and words[idx - i] != "padding":
+        if idx - i >= 0:
             target_words.add(words[idx - i])
             target_words_print.append(int_to_vocab[words[idx - i]])
-        if idx + i < n_words and words[idx + i] != "padding":
+        if idx + i < n_words:
             target_words.add(words[idx + i])
             target_words_print.append(int_to_vocab[words[idx + i]])
     
-    target_words: List[str] = list(target_words)
+    target_words: List[int] = list(target_words)
+    filtered_words: List[int]  = []
+    
+    for word in target_words:
+        if word in words_to_remove:
+            if random.random() > probability:
+                filtered_words.append(word)
+        else:
+            filtered_words.append(word)
+
     # print("Nearby words", idx, target_words_print)
     
-    while len(target_words) < context_length:
-        target_words.append(vocab_to_int["padding"])
+    while len(filtered_words) < context_length:
+        filtered_words.append(vocab_to_int["padding"])
     
-    target_words = target_words[:context_length]
+    filtered_words = filtered_words[:context_length]
 
-    return target_words
+    return filtered_words
 
 
 class EmbeddingsDataset(Dataset):
-    def __init__(self, tokens: List[str], sentences: List[str], correspondences: Dict[int, str], nlp: spacy.language.Language, vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str], window_size: int = 5) -> None:
+    def __init__(self, tokens: List[str], sentences: List[str], correspondences: Dict[int, str], nlp: spacy.language.Language, vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str], window_size: int = 6) -> None:
         """
         Initialize the dataset with the text data, a vocabulary-to-integer mapping, and the context size.
 

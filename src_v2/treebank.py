@@ -1,8 +1,4 @@
 from typing import List, Optional, Dict
-try:
-    from src_v2.data_processing import clean_sentence
-except:
-    from data_processing import clean_sentence
 
 
 class Node:
@@ -147,5 +143,25 @@ class Tree:
             return [node]
         else:
             return self.get_leaves(node.left) + self.get_leaves(node.right)
+
+
+def clean_sentence(sentence: str) -> str:
+    """
+    Replaces incorrectly formatted characters.
+
+    Args:
+    - sentence (str): sentence to be cleaned.
+    Returns:
+    - sentence (str): cleaned sentence.
+    """
+
+    substitutions: Dict[str, str] = {
+        "``": "",
+        "''": ""
+    }
+
+    for key, value in substitutions.items():
+        sentence = sentence.replace(key, value)
+    return sentence.lower()
 
 

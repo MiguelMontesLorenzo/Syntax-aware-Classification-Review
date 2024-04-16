@@ -49,11 +49,17 @@ def train_skipgram(model: SkipGramNeg,
             inputs = torch.LongTensor(input_words.view(-1))
             targets = torch.LongTensor(target_words.view(-1))
 
+            # print("Inputs shape", inputs.shape)
+            # print("Outputs shape", targets.shape)
+
             inputs, targets = inputs.to(device), targets.to(device)
 
             # input, output, and noise vectors
             input_vectors = model.forward_input(inputs)
             output_vectors = model.forward_output(targets)
+
+            # print("Inputs vectors shape", input_vectors.shape)
+            # print("Outputs vectors shape", output_vectors.shape)
             noise_vectors = model.forward_noise(input_vectors.size(0), n_samples)
             
             # negative sampling loss

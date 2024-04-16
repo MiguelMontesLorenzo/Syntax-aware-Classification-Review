@@ -1,9 +1,9 @@
 from typing import List, Dict, Tuple
-from collections import Counter
 import matplotlib.pyplot as plt
 import torch
 from sklearn.manifold import TSNE
 import os
+import json
 
 
 def clean_text(text: str) -> str:
@@ -112,3 +112,8 @@ def save_model(model, model_path="skipgram_dep_model.pth"):
     # Save the model
     torch.save(model.state_dict(), model_path)
     return model_path
+
+
+def write_dict(json_file: str, vocab_to_int: Dict[str, int]) -> None:
+    with open(json_file, "w") as outfile: 
+        json.dump(vocab_to_int, outfile)
