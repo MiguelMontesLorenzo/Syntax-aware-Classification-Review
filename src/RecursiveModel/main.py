@@ -99,16 +99,15 @@ def main() -> None:
 
         # Save checkpoints
         if (epoch + 1) % 5 == 0:
-            if (epoch + 1) % 1 == 0:
-                torch.save(
-                    {
-                        "epoch": epoch,
-                        "model_state_dict": model.state_dict(),
-                        "optimizer_state_dict": optimizer.state_dict(),
-                        "loss": loss,
-                    },
-                    f"models/checkpoint_{epoch+1}",
-                )
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "loss": loss,
+                },
+                f"models/checkpoint_{epoch+1}",
+            )
 
         # Update the scheduler
         scheduler.step()
