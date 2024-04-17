@@ -70,7 +70,7 @@ def main(start_epoch: int = 0) -> None:
     if start_epoch > 0:
         checkpoint_path = f"models/checkpoint_{start_epoch}"
         if os.path.exists(checkpoint_path):
-            model.load_state_dict(torch.load(checkpoint_path))
+            model.load_state_dict(torch.load(checkpoint_path)["model_state_dict"])
             print(f"Loaded checkpoint from epoch {start_epoch}")
         else:
             print(
@@ -94,7 +94,6 @@ def main(start_epoch: int = 0) -> None:
             loss,
             writer,
             epoch,
-            name=name,
         )
         val_loss: float = val(model, batch_size, val_data, device, loss, writer, epoch)
 
@@ -122,4 +121,4 @@ def main(start_epoch: int = 0) -> None:
 
 
 if __name__ == "__main__":
-    main(1)
+    main(5)
