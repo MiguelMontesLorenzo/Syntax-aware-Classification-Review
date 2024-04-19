@@ -108,7 +108,18 @@ def main(start_epoch: int = 0) -> None:
 
         # Save checkpoints
         if (epoch + 1) % 5 == 0:
-            save_model(model, f"checkpoint_epoch_{epoch + 1}")
+            if not os.path.isdir("models"):
+                os.makedirs("models")
+
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "loss": loss,
+                },
+                f"models/checkpoint_{epoch+1}",
+            )
 
         # Update the scheduler
         scheduler.step()
