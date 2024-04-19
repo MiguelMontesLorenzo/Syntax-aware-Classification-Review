@@ -5,11 +5,10 @@ from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import StepLR
 import os
 
-from src.data import download_data, load_trees, generate_dataloaders
+from src.data import download_data, load_trees, generate_dataloaders, load_vocab
 from src.treebank import Tree
 from src.utils import load_pretrained_weights, save_model
 from src.pretrained_embeddings import SkipGramNeg
-from src.RecursiveModel.data import load_vocab
 from src.RecursiveModel.recursive import RNTN
 from src.RecursiveModel.train_functions import train, val
 from src.RecursiveModel.utils import set_seed
@@ -83,6 +82,10 @@ def main() -> None:
         )
 
         pretrained_model.load_pretrained_embeddings(weights)
+
+        # Freeze pretrained model parameters
+        for param in pretrained_model.parameters():
+            param.requires_grad = False
 
         # Define model
         model: RNTN = RNTN(

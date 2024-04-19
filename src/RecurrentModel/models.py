@@ -1,3 +1,4 @@
+from typing import Dict
 import torch
 from torch import nn
 
@@ -30,11 +31,14 @@ class RNN(nn.Module):
 
     def __init__(
         self,
-        pretrained_model: SkipGramNeg,
+        word2index: Dict[str, int],
         hidden_dim: int,
+        embedding_dim: int,
         num_classes: int,
         num_layers: int = 1,
         bidirectional: bool = True,
+        device: str = "cpu",
+        pretrained_model: SkipGramNeg = None,
     ) -> None:
         """
         Initializes the RNN model with given embedding weights, hidden dimension, and number of layers.
@@ -48,10 +52,21 @@ class RNN(nn.Module):
         """
 
         super().__init__()
-        self.embedding: nn.Embedding = pretrained_model.in_embed
-        self.embedding_dim: int = pretrained_model.embed_dim
+        if pretrained_model:
+            self.embed: SkipGramNeg = pretrained_model.in_embed
+            self.initialize_embeddings = False
+
+        else:
+            self.embed: nn.Embedding = nn.Embedding(len(word2index), embedding_dim).to(
+                device
+            )
+            self.initialize_embeddings = True
+
+        self.embedding_dim: int = embedding_dim
         self.bidirectional: bool = bidirectional
         self.hidden_dim: int = hidden_dim
+
+        self.device: str = device
 
         self.rnn: nn.LSTM = nn.LSTM(
             self.embedding_dim,

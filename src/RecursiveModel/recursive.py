@@ -8,6 +8,7 @@ from collections import OrderedDict
 from typing import Dict, List
 
 from src.treebank import Node, Tree
+from src.pretrained_embeddings import SkipGramNeg
 
 
 class RNTN(nn.Module):
@@ -18,7 +19,7 @@ class RNTN(nn.Module):
         output_size: int,
         simple_RNN: bool = False,
         device: str = "cpu",
-        pretrained_model=None,
+        pretrained_model: SkipGramNeg =None,
     ) -> None:
         """
         Construct the recursive NN.
@@ -37,7 +38,7 @@ class RNTN(nn.Module):
         self.word2index: Dict[str, int] = word2index
 
         if pretrained_model:
-            self.embed: nn.Embedding = pretrained_model.in_embed
+            self.embed: SkipGramNeg = pretrained_model.in_embed
             self.initialize_embeddings = False
 
         else:
