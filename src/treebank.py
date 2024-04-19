@@ -1,18 +1,16 @@
 from typing import List, Optional, Dict
-try:
-    from src_v2.data_processing import clean_sentence
-except:
-    from data_processing import clean_sentence
 
 
 class Node:
     def __init__(self, label: int, word: str = None, parent=None) -> None:
         """
         Initialize Node class.
+
         Args:
         - label (int): sentiment label
         - word (str): word in the sentence
         - parent (Optional[Node]): node parent
+
         Returns:
         - None
         """
@@ -26,8 +24,10 @@ class Node:
     def __str__(self) -> str:
         """
         Print the string ofof the node and it's children.
+
         Args:
         - None
+
         Returns:
         - None
         """
@@ -44,11 +44,15 @@ class Tree:
     ) -> None:
         """
         Initialize Tree class.
+
         Args:
         - treeString (str): string extracted from the dataset, is equivalent
             to a tree.
         - openChar (str): string that delimits the start of a constituyent.
         - closeChar (str): string that delimits the start of a constituyent.
+        
+        Returns:
+        - None
         """
         tokens: List = []
         self.open: str = openChar
@@ -65,9 +69,11 @@ class Tree:
         """
         Parse a list of tokens (equivalent) to a sentence (or a subsentence)
         to convert the complete sentence to a tree structure.
+
         Args:
         - tokens (List[str]): list of tokens to parse.
         - parent (Optional[Node]): Node to start parsing,  if None, is the complete sentence.
+
         Returns:
         - node (Node): Node corresponding to the parent of the tree.
         """
@@ -108,8 +114,10 @@ class Tree:
     def get_words(self) -> List[str]:
         """
         Get the words of the sentence to parse
+
         Args:
         - None
+
         Returns:
         - words (List[str]): list of words corresponding to the sentence
         """
@@ -155,15 +163,18 @@ def clean_sentence(sentence: str) -> str:
 
     Args:
     - sentence (str): sentence to be cleaned.
+
     Returns:
     - sentence (str): cleaned sentence.
     """
 
     substitutions: Dict[str, str] = {
         "``": "",
-        "''": "",
+        "''": ""
     }
 
     for key, value in substitutions.items():
         sentence = sentence.replace(key, value)
-    return sentence
+    return sentence.lower()
+
+

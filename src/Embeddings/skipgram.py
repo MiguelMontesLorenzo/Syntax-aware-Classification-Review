@@ -17,7 +17,7 @@ class SkipGramNeg(nn.Module):
     - out_embed (nn.Embedding): embedding layer for output words.
     """
 
-    def __init__(self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None):
+    def __init__(self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None) -> None:
         """
         Initializes the SkipGramNeg model with given vocabulary size, embedding size, and noise distribution.
 
@@ -50,8 +50,6 @@ class SkipGramNeg(nn.Module):
         Returns:
         - input_vectors (torch.Tensor): tensor containing the input vectors for the given words.
         """
-
-        # print("Input words", max(input_words))
         return self.in_embed(input_words)
 
     def forward_output(self, output_words: torch.Tensor) -> torch.Tensor:
@@ -64,7 +62,6 @@ class SkipGramNeg(nn.Module):
         Returns:
         - output_vectors (torch.Tensor): tensor containing the output vectors for the given words.
         """
-        # print("Input words", output_words.shape)
         return self.out_embed(output_words)
 
     def forward_noise(self, batch_size: int, n_samples: int) -> torch.Tensor:
@@ -109,7 +106,7 @@ class NegativeSamplingLoss(nn.Module):
     negative samples), across a batch.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the NegativeSamplingLoss module."""
         super().__init__()
 

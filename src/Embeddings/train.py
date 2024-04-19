@@ -3,12 +3,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from typing import List, Dict
 
-try:
-    from src.skipgram import SkipGramNeg, NegativeSamplingLoss  
-    from src.data_processing import cosine_similarity
-except ImportError:
-    from skipgram import SkipGramNeg, NegativeSamplingLoss
-    from data_processing import cosine_similarity
+from src.Embeddings.skipgram import SkipGramNeg, NegativeSamplingLoss  
+from src.Embeddings.data_processing import cosine_similarity
 
 def train_skipgram(model: SkipGramNeg,
                    dataloader: DataLoader,
@@ -35,8 +31,8 @@ def train_skipgram(model: SkipGramNeg,
     - device (str): the device (CPU or GPU) where the tensors will be allocated.
     """
     # Define loss and optimizer
-    criterion = NegativeSamplingLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    criterion: torch.nn.Module = NegativeSamplingLoss()
+    optimizer: torch.optim.Optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     steps: int = 0
     n_samples: int = 3
@@ -46,14 +42,15 @@ def train_skipgram(model: SkipGramNeg,
         for input_words, target_words in dataloader:
             steps += 1
             # Convert inputs and context words into tensors
-            inputs = torch.LongTensor(input_words.view(-1))
-            targets = torch.LongTensor(target_words.view(-1))
+            inputs: torch.Tensor = torch.LongTensor(input_words.view(-1))
+            targets: torch.Tensor = torch.LongTensor(target_words.view(-1))
 
             inputs, targets = inputs.to(device), targets.to(device)
 
             # input, output, and noise vectors
-            input_vectors = model.forward_input(inputs)
-            output_vectors = model.forward_output(targets)
+            input_vectors: torch.Tensor = model.forward_input(inputs)
+            output_vectors: torch.Tensor = model.forward_output(targets)
+
             noise_vectors = model.forward_noise(input_vectors.size(0), n_samples)
             
             # negative sampling loss

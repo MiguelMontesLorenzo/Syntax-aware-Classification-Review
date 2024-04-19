@@ -13,12 +13,8 @@ import zipfile
 from math import sqrt
 from torch.utils.data import Dataset, DataLoader
 
-try:
-    from src_v2.utils import tokenize
-    from src_v2.treebank import Tree, clean_sentence
-except ImportError:
-    from utils import tokenize
-    from treebank import Tree, clean_sentence
+from src.Embeddings.utils import tokenize
+from src.treebank import Tree
 
 
 def load_and_preprocess_data(csv_file: str) -> Tuple[List[str], List[str], Dict[int, Tuple[int, int]], Dict[str, int], Dict[int, str]]:
