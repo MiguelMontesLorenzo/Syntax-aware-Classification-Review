@@ -22,6 +22,9 @@ def main() -> None:
     Returns:
     -None
     """
+
+    download_data()
+
     # Constants
     NUM_CLASSES: int = 5
     EMBED_DIM: int = 300

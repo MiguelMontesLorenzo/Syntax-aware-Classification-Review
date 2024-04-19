@@ -38,14 +38,14 @@ class RNTN(nn.Module):
         self.word2index: Dict[str, int] = word2index
 
         if pretrained_model:
-            self.embed: SkipGramNeg = pretrained_model.in_embed
-            self.initialize_embeddings = False
+            self.embed: torch.Tensor = pretrained_model.in_embed
+            self.initialize_embeddings: bool = False
 
         else:
             self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(
                 device
             )
-            self.initialize_embeddings = True
+            self.initialize_embeddings: bool = True
 
         self.V: nn.ParameterList = nn.ParameterList(
             [

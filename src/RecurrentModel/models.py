@@ -38,7 +38,7 @@ class RNN(nn.Module):
         num_layers: int = 1,
         bidirectional: bool = True,
         device: str = "cpu",
-        pretrained_model: SkipGramNeg = None,
+        pretrained_model: SkipGramNeg = False,
     ) -> None:
         """
         Initializes the RNN model with given embedding weights, hidden dimension, and number of layers.
@@ -53,14 +53,14 @@ class RNN(nn.Module):
 
         super().__init__()
         if pretrained_model:
-            self.embed: SkipGramNeg = pretrained_model.in_embed
-            self.initialize_embeddings = False
+            self.embedding: torch.Tensor = pretrained_model.in_embed
+            self.our_embeddings: bool = True
 
         else:
-            self.embed: nn.Embedding = nn.Embedding(len(word2index), embedding_dim).to(
+            self.embedding: nn.Embedding = nn.Embedding(len(word2index), embedding_dim).to(
                 device
             )
-            self.initialize_embeddings = True
+            self.our_embeddings: bool = False
 
         self.embedding_dim: int = embedding_dim
         self.bidirectional: bool = bidirectional
