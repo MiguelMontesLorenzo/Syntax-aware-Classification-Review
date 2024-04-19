@@ -1,15 +1,18 @@
-from src.RecursiveModel.data import download_data, load_trees, load_vocab
-from src.RecursiveModel.recursive import RNTN
-from src.RecursiveModel.train_functions import train, val
-from src.RecursiveModel.treebank import Tree
-from src.RecursiveModel.utils import save_model, set_seed
-
 from typing import List, Dict
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import StepLR
 import os
+
+from src.data import download_data, load_trees, generate_dataloaders
+from src.treebank import Tree
+from src.utils import load_pretrained_weights, save_model
+from src.pretrained_embeddings import SkipGramNeg
+from src.RecursiveModel.data import load_vocab
+from src.RecursiveModel.recursive import RNTN
+from src.RecursiveModel.train_functions import train, val
+from src.RecursiveModel.utils import set_seed
 
 set_seed(42)
 
@@ -28,14 +31,16 @@ def main() -> None:
     # hyperparameters
     hidden_size: int = 300
     lr: float = 0.02
-    epochs: int = 100
+    epochs: int = 1
     batch_size: int = 4
     output_size: int = 5
     step_size: int = 20
     gamma: float = 0.1
     simple_RNN: bool = True
+    our_embeddings = True
     patience: int = 20
     best_val_loss: float = float("inf")
+    
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -57,15 +62,44 @@ def main() -> None:
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
 
     print(device)
+    
+    # our own embeddings
+    if our_embeddings:
+        pretrained_folder: str = "pretrained"
+        pretrained_weights_filename: str = "skipgram_dep_model_updated.pth"
+        big_vocab_to_int: str = "vocab_to_int.json"
 
-    # Define model
-    model: RNTN = RNTN(
-        word2index=word2index,
-        hidden_size=hidden_size,
-        output_size=output_size,
-        simple_RNN=simple_RNN,
-        device=device,
-    ).to(device)
+        _, _, _, vocab_to_int, _ = generate_dataloaders(batch_size=batch_size)
+
+        vocab_size: int = len(vocab_to_int)
+
+        pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=hidden_size)
+        pretrained_weights_path: str = os.path.join(pretrained_folder, pretrained_weights_filename)
+        pretrained_dict_path: str = os.path.join(pretrained_folder, big_vocab_to_int)
+
+        weights: torch.Tensor = load_pretrained_weights(pretrained_weights_path, pretrained_dict_path, vocab_to_int)
+
+        pretrained_model.load_pretrained_embeddings(weights)
+        
+        # Define model
+        model: RNTN = RNTN(
+            word2index=word2index,
+            hidden_size=hidden_size,
+            output_size=output_size,
+            simple_RNN=simple_RNN,
+            device=device,
+            pretrained_model=pretrained_model
+        ).to(device)
+
+    else:
+        # Define model
+        model: RNTN = RNTN(
+            word2index=word2index,
+            hidden_size=hidden_size,
+            output_size=output_size,
+            simple_RNN=simple_RNN,
+            device=device
+        ).to(device)
 
     # Define loss function and optimizer
     loss: torch.nn.Module = torch.nn.CrossEntropyLoss()
@@ -117,9 +151,6 @@ def main() -> None:
 
     # Save model
     save_model(model, "best_model")
-
-    # accuracy_value: float = test(model, batch_size, test_data, device)
-    # print("Test accuracy:", accuracy_value)
 
 
 if __name__ == "__main__":

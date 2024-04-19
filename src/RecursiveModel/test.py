@@ -1,10 +1,7 @@
-from src.RecursiveModel.data import download_data, load_trees, load_vocab
-from src.RecursiveModel.recursive import RNTN
-from src.RecursiveModel.train_functions import train, val, test
-from src.RecursiveModel.treebank import Tree
-from src.RecursiveModel.utils import get_batch, flatten, save_model
-
 from typing import List
+
+from src.data import load_trees
+from src.treebank import Tree
 
 if __name__ == "__main__":
     train_data: List[Tree] = load_trees("train")

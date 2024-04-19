@@ -1,11 +1,12 @@
-from src.RecursiveModel.train_functions import test
+
 from typing import List
-from src.RecursiveModel.data import load_trees
-from src.RecursiveModel.treebank import Tree
-from src.RecursiveModel.recursive import RNTN
-from src.RecursiveModel.utils import set_seed
 import torch
 
+from src.data import load_trees
+from src.treebank import Tree
+from src.RecursiveModel.recursive import RNTN
+from src.RecursiveModel.utils import set_seed
+from src.RecursiveModel.train_functions import test
 
 set_seed(42)
 

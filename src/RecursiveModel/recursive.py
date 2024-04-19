@@ -7,7 +7,7 @@ import numpy as np
 from collections import OrderedDict
 from typing import Dict, List
 
-from src.RecursiveModel.treebank import Node, Tree
+from src.treebank import Node, Tree
 
 
 class RNTN(nn.Module):
@@ -18,6 +18,7 @@ class RNTN(nn.Module):
         output_size: int,
         simple_RNN: bool = False,
         device: str = "cpu",
+        pretrained_model = None,
     ) -> None:
         """
         Construct the recursive NN.
@@ -34,10 +35,15 @@ class RNTN(nn.Module):
         """
         super().__init__()
         self.word2index: Dict[str, int] = word2index
-        # We could add pretrained embeddings:
-        # self.embed = pretrained_model.in_embed
 
-        self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(device)
+        if pretrained_model:
+            self.embed: nn.Embedding = pretrained_model.in_embed
+            self.initialize_embeddings = False
+            
+        else:
+            self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(device)
+            self.initialize_embeddings = True
+
         self.V: nn.ParameterList = nn.ParameterList(
             [
                 nn.Parameter(torch.randn(hidden_size * 2, hidden_size * 2))
@@ -63,7 +69,8 @@ class RNTN(nn.Module):
         """
 
         # Embeddings
-        nn.init.xavier_uniform_(self.embed.state_dict()["weight"])
+        if self.initialize_embeddings:
+            nn.init.xavier_uniform_(self.embed.state_dict()["weight"])
 
         # V
         if self.simple_RNN:

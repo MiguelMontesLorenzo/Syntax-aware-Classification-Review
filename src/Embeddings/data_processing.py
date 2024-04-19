@@ -6,15 +6,14 @@ import spacy
 import re
 import csv
 import subprocess
-import os
-import requests
-import zipfile
+
 
 from math import sqrt
 from torch.utils.data import Dataset, DataLoader
 
 from src.Embeddings.utils import tokenize
 from src.treebank import Tree
+from src.data import load_trees, download_data
 
 
 def load_and_preprocess_data(csv_file: str) -> Tuple[List[str], List[str], Dict[int, Tuple[int, int]], Dict[str, int], Dict[int, str]]:
@@ -45,87 +44,6 @@ def load_and_preprocess_data(csv_file: str) -> Tuple[List[str], List[str], Dict[
     tokens, correspondences = tokenize(sentences)
 
     return sentences, tokens, correspondences, vocab_to_int, int_to_vocab
-
-
-def download_file(url: str, save_dir: str, filename: str) -> None:
-    """
-    Args:
-    - url (str): url of the dataset.
-    - save_dir (str): directory for the dataset.
-    - file_name (str): name of the file.
-
-    Returns:
-    - None
-    """
-    # Get the file path to save to
-    filepath = os.path.join(save_dir, filename)
-
-    # Download the file
-    print(f"Downloading {filename}...")
-    response = requests.get(url)
-    with open(filepath, "wb") as file:
-        file.write(response.content)
-
-    return filepath
-
-def extract_zip(zip_path: str, extract_dir: str) -> None:
-    """
-    Function to extract the files of zip_file into extract_dir.
-
-    Args:
-    - zip_path (str): Path to the zip file to unzip.
-    - extract_dir (str): Path to load the unzipped files.
-
-    Returns:
-    - None
-    """
-
-    print(f"Extracting {zip_path}...")
-
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(extract_dir)
-
-def download_data() -> None:
-    """
-    Complete pipeline to download sst data.
-
-    Args:
-    - None
-
-    Returns:
-    - None
-    """
-
-    # Define the URL, directory name, and file name
-    urls: List[str] = ["http://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"]
-    path: str = "data_sst"
-    name: str = path + "/sst.zip"
-
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-        # Download the file
-        zip_path = download_file(urls[0], ".", name)
-
-        # Extract the ZIP file
-        extract_zip(zip_path, path)
-
-def load_trees(file: str) -> List[Tree]:
-    """
-    Loads training trees. Maps leaf node words to word ids.
-
-    Args:
-    - file (str)
-
-    Returns:
-    - None
-    """
-    filename: str = "data_sst/trees/" + file + ".txt"
-    print(f"Loading {filename} trees...")
-    with open(filename, "r", encoding="utf-8") as file:
-        trees: List[Tree] = [Tree(line) for line in file.readlines()]
-
-    return trees
 
 
 def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]:

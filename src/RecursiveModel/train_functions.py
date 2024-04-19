@@ -1,11 +1,11 @@
-import torch
-from src.RecursiveModel.utils import get_batch, flatten, accuracy
-import numpy as np
 from typing import List
-from src.RecursiveModel.treebank import Tree
-
-# from src.RecursiveModel.utils import Hook
+import torch
+import numpy as np
 from torch.utils.tensorboard import SummaryWriter
+
+from src.treebank import Tree
+from src.utils import accuracy
+from src.RecursiveModel.utils import get_batch, flatten
 
 
 def train(
