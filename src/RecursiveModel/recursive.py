@@ -18,7 +18,7 @@ class RNTN(nn.Module):
         output_size: int,
         simple_RNN: bool = False,
         device: str = "cpu",
-        pretrained_model = None,
+        pretrained_model=None,
     ) -> None:
         """
         Construct the recursive NN.
@@ -39,9 +39,11 @@ class RNTN(nn.Module):
         if pretrained_model:
             self.embed: nn.Embedding = pretrained_model.in_embed
             self.initialize_embeddings = False
-            
+
         else:
-            self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(device)
+            self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(
+                device
+            )
             self.initialize_embeddings = True
 
         self.V: nn.ParameterList = nn.ParameterList(

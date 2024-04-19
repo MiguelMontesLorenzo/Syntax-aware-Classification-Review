@@ -1,9 +1,7 @@
 import torch
 from torch import nn
-try:
-    from src.RecurrentModel.pretrained_embeddings import SkipGramNeg
-except ImportError:
-    from pretrained_embeddings import SkipGramNeg
+
+from src.pretrained_embeddings import SkipGramNeg
 
 
 class RNN(nn.Module):
@@ -30,7 +28,14 @@ class RNN(nn.Module):
     - bidirectional (bool): bidirectional or not.
     """
 
-    def __init__(self, pretrained_model: SkipGramNeg, hidden_dim: int, num_classes: int, num_layers: int = 1, bidirectional: bool = True) -> None:
+    def __init__(
+        self,
+        pretrained_model: SkipGramNeg,
+        hidden_dim: int,
+        num_classes: int,
+        num_layers: int = 1,
+        bidirectional: bool = True,
+    ) -> None:
         """
         Initializes the RNN model with given embedding weights, hidden dimension, and number of layers.
 
@@ -43,12 +48,18 @@ class RNN(nn.Module):
         """
 
         super().__init__()
-        self.embedding_: nn.Embedding = pretrained_model.in_embed
+        self.embedding: nn.Embedding = pretrained_model.in_embed
         self.embedding_dim: int = pretrained_model.embed_dim
         self.bidirectional: bool = bidirectional
         self.hidden_dim: int = hidden_dim
 
-        self.rnn: nn.LSTM = nn.LSTM(self.embedding_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=bidirectional)
+        self.rnn: nn.LSTM = nn.LSTM(
+            self.embedding_dim,
+            hidden_size=hidden_dim,
+            num_layers=num_layers,
+            batch_first=True,
+            bidirectional=bidirectional,
+        )
 
         self.fc: nn.Linear = nn.Linear(hidden_dim, num_classes)
 
@@ -65,7 +76,9 @@ class RNN(nn.Module):
         """
         embedded: torch.Tensor = self.embedding(x)
 
-        packed_embedded: torch.Tensor = nn.utils.rnn.pack_padded_sequence(embedded, text_lengths.cpu().numpy(), batch_first=True)
+        packed_embedded: torch.Tensor = nn.utils.rnn.pack_padded_sequence(
+            embedded, text_lengths.cpu().numpy(), batch_first=True
+        )
 
         packed_output, (hidden, cell) = self.rnn(packed_embedded)
 

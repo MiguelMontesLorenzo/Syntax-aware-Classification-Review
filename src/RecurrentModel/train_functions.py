@@ -1,12 +1,10 @@
+from typing import List
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from typing import List
-try:
-    from src.RecurrentModel.utils import accuracy
-except ImportError:
-    from utils import accuracy
+
+from src.utils import accuracy
 
 
 def train_step(
@@ -37,7 +35,7 @@ def train_step(
     # Define metric lists
     losses: List[float] = []
     accuracies: List[float] = []
-    
+
     model.train()
 
     for sentences, labels, text_len in train_data:
@@ -47,7 +45,7 @@ def train_step(
         outputs: torch.Tensor = model(sentences, text_len)
 
         loss_value: torch.nn.Module = loss(outputs, labels.long())
-        
+
         accuracy_measure: torch.Tensor = accuracy(outputs, labels)
 
         optimizer.zero_grad()
@@ -56,7 +54,7 @@ def train_step(
 
         losses.append(loss_value.item())
         accuracies.append(accuracy_measure.item())
-    
+
     final_loss: float = float(np.mean(losses))
 
     # write on tensorboard
@@ -88,7 +86,7 @@ def val_step(
     Return:
     - None
     """
-    
+
     model.eval()
 
     with torch.no_grad():
@@ -102,47 +100,47 @@ def val_step(
             outputs: torch.Tensor = model(sentences, text_len)
 
             loss_value: torch.nn.Module = loss(outputs, labels.long())
-            
+
             accuracy_measure: torch.Tensor = accuracy(outputs, labels)
 
             losses.append(loss_value.item())
             accuracies.append(accuracy_measure.item())
-        
+
         writer.add_scalar("val/loss", np.mean(losses), epoch)
         writer.add_scalar("val/accuracy", np.mean(accuracies), epoch)
 
 
 def t_step(
-        model: torch.nn.Module,
-        test_data: DataLoader,
-        device: torch.device,
-    ) -> float:
-        """
-        This function computes the test step.
+    model: torch.nn.Module,
+    test_data: DataLoader,
+    device: torch.device,
+) -> float:
+    """
+    This function computes the test step.
 
-        Args:
-        - model (torch.nn.Module): pytorch model.
-        - test_data (DataLoader): test dataloader.
-        - device (torch.device): device of model.
-            
-        Returns:
-        - final_accuracy (float): average accuracy.
-        """
+    Args:
+    - model (torch.nn.Module): pytorch model.
+    - test_data (DataLoader): test dataloader.
+    - device (torch.device): device of model.
 
-        model.eval()
-        accuracies: List[float] = []
+    Returns:
+    - final_accuracy (float): average accuracy.
+    """
 
-        with torch.no_grad():
-            
-            for sentences, labels, text_len in test_data:
-                sentences: torch.Tensor = sentences.to(device)
-                labels: torch.Tensor = labels.to(device)
+    model.eval()
+    accuracies: List[float] = []
 
-                outputs: torch.Tensor = model(sentences, text_len)
-                
-                accuracy_measure: torch.Tensor = accuracy(outputs, labels)
+    with torch.no_grad():
 
-                accuracies.append(accuracy_measure.item())
-            
-            final_accuracy: float = float(np.mean(accuracies))
-        return final_accuracy
+        for sentences, labels, text_len in test_data:
+            sentences: torch.Tensor = sentences.to(device)
+            labels: torch.Tensor = labels.to(device)
+
+            outputs: torch.Tensor = model(sentences, text_len)
+
+            accuracy_measure: torch.Tensor = accuracy(outputs, labels)
+
+            accuracies.append(accuracy_measure.item())
+
+        final_accuracy: float = float(np.mean(accuracies))
+    return final_accuracy

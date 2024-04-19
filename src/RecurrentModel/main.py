@@ -2,19 +2,14 @@ import torch
 import os
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
-from torch.optim.lr_scheduler import StepLR
-try:
-    from src.RecurrentModel.data import download_data, generate_dataloaders
-    from src.RecurrentModel.utils import save_model, plot_embeddings, load_pretrained_weights
-    from src.RecurrentModel.pretrained_embeddings import SkipGramNeg
-    from src.RecurrentModel.models import RNN
-    from src.RecurrentModel.train_functions import train_step, val_step, t_step
-except ImportError:
-    from data import download_data, generate_dataloaders
-    from utils import save_model, plot_embeddings, load_pretrained_weights
-    from pretrained_embeddings import SkipGramNeg
-    from models import RNN
-    from train_functions import train_step, val_step, t_step
+
+# from torch.optim.lr_scheduler import StepLR
+
+from src.data import download_data, generate_dataloaders
+from src.utils import save_model, load_pretrained_weights
+from src.pretrained_embeddings import SkipGramNeg
+from src.RecurrentModel.models import RNN
+from src.RecurrentModel.train_functions import train_step, val_step, t_step
 
 
 def main() -> None:
@@ -51,15 +46,21 @@ def main() -> None:
     # empty nohup file
     open("nohup.out", "w").close()
 
-    train_loader, val_loader, test_loader, vocab_to_int, int_to_vocab = generate_dataloaders(batch_size=batch_size)
+    train_loader, val_loader, test_loader, vocab_to_int, int_to_vocab = (
+        generate_dataloaders(batch_size=batch_size)
+    )
 
     vocab_size: int = len(vocab_to_int)
 
     pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=EMBED_DIM)
-    pretrained_weights_path: str = os.path.join(pretrained_folder, pretrained_weights_filename)
+    pretrained_weights_path: str = os.path.join(
+        pretrained_folder, pretrained_weights_filename
+    )
     pretrained_dict_path: str = os.path.join(pretrained_folder, big_vocab_to_int)
 
-    weights: torch.Tensor = load_pretrained_weights(pretrained_weights_path, pretrained_dict_path, vocab_to_int)
+    weights: torch.Tensor = load_pretrained_weights(
+        pretrained_weights_path, pretrained_dict_path, vocab_to_int
+    )
 
     pretrained_model.load_pretrained_embeddings(weights)
 
@@ -75,7 +76,7 @@ def main() -> None:
     # )
     name: str = "tue_1"
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
-    
+
     # Define model
     model: RNN = RNN(
         pretrained_model=pretrained_model,
@@ -87,17 +88,21 @@ def main() -> None:
 
     # Define loss function and optimizer
     loss: torch.nn.Module = torch.nn.CrossEntropyLoss()
-    optimizer: torch.optim.Optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    optimizer: torch.optim.Optimizer = torch.optim.AdamW(
+        model.parameters(), lr=learning_rate
+    )
 
     # Learning rate scheduler
-    scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
+    # scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
     print(f"Training Recurrent model on {device}...")
 
     # Train loop
     for epoch in tqdm(range(epochs)):
         # Call train step
-        total_train_lost: float = train_step(model, train_loader, loss, optimizer, writer, epoch, device)
+        total_train_lost: float = train_step(
+            model, train_loader, loss, optimizer, writer, epoch, device
+        )
 
         # Call val step
         val_step(model, val_loader, loss, writer, epoch, device)
@@ -109,9 +114,11 @@ def main() -> None:
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= patience:
-                print(f"Early stopping triggered at epoch {epoch}. No improvement in test loss for {patience} consecutive epochs.")
+                print(
+                    f"Early stopping triggered at epoch {epoch}. No improvement in test loss for {patience} consecutive epochs."
+                )
                 break
-        
+
         # scheduler.step()
 
     # Save model

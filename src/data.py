@@ -9,6 +9,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from src.treebank import Tree
 
+
 def download_file(url: str, save_dir: str, filename: str) -> None:
     """
     Args:
@@ -30,6 +31,7 @@ def download_file(url: str, save_dir: str, filename: str) -> None:
 
     return filepath
 
+
 def extract_zip(zip_path: str, extract_dir: str) -> None:
     """
     Function to extract the files of zip_file into extract_dir.
@@ -46,6 +48,7 @@ def extract_zip(zip_path: str, extract_dir: str) -> None:
 
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_dir)
+
 
 def download_data() -> None:
     """
@@ -71,6 +74,7 @@ def download_data() -> None:
 
         # Extract the ZIP file
         extract_zip(zip_path, path)
+
 
 def load_trees(file: str) -> List[Tree]:
     """
@@ -101,8 +105,9 @@ class SSTDataset(Dataset):
             context_size (int): The number of words to include in the context.
         """
         self.vocab_to_int: Dict[str, int] = vocab_to_int
-        self.data: List[Tuple[List[str], int]] = [(tree.get_words(), tree.labels[-1]) for tree in data]
-
+        self.data: List[Tuple[List[str], int]] = [
+            (tree.get_words(), tree.labels[-1]) for tree in data
+        ]
 
     def __len__(self):
         """Return the number of items in the dataset."""
@@ -119,12 +124,20 @@ class SSTDataset(Dataset):
             A tuple of context and target, both converted to integer representations.
         """
         sentence, target = self.data[idx]
-        sentence_tensor = torch.tensor([self.vocab_to_int[token] for token in sentence if token in self.vocab_to_int])
+        sentence_tensor = torch.tensor(
+            [
+                self.vocab_to_int[token]
+                for token in sentence
+                if token in self.vocab_to_int
+            ]
+        )
         target_tensor = torch.tensor(target)
         return sentence_tensor, target_tensor.squeeze()
 
 
-def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]:
+def preprocess_data() -> (
+    Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]
+):
     # Load training, validation and test data
     train_data: List[Tree] = load_trees("train")
     val_data: List[Tree] = load_trees("dev")
@@ -143,8 +156,10 @@ def preprocess_data() -> Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int
     return train_data, val_data, test_data, vocab_to_int, int_to_vocab
 
 
-def generate_dataloaders(batch_size=128, num_workers=4) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int]]:
-    
+def generate_dataloaders(
+    batch_size=128, num_workers=4
+) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int]]:
+
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
     train_dataset: Dataset = SSTDataset(train_data, vocab_to_int)
@@ -153,13 +168,28 @@ def generate_dataloaders(batch_size=128, num_workers=4) -> Tuple[DataLoader, Dat
 
     # Define dataloaders
     train_dataloader: DataLoader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn, drop_last=True
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        collate_fn=collate_fn,
+        drop_last=True,
     )
     val_dataloader: DataLoader = DataLoader(
-        val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn, drop_last=True
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        collate_fn=collate_fn,
+        drop_last=True,
     )
     test_dataloader: DataLoader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn, drop_last=True
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        collate_fn=collate_fn,
+        drop_last=True,
     )
 
     return train_dataloader, val_dataloader, test_dataloader, vocab_to_int, int_to_vocab
@@ -176,7 +206,9 @@ def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, st
     return vocab_to_int, int_to_vocab
 
 
-def collate_fn(batch: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def collate_fn(
+    batch: List[Tuple[torch.Tensor, torch.Tensor]]
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Prepares and returns a batch for training/testing in a torch model.
 
@@ -195,15 +227,17 @@ def collate_fn(batch: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Te
             - lengths (torch.Tensor): A tensor representing the lengths of each text sequence.
     """
 
-    sorted_batch: List[Tuple[List[torch.Tensor, torch.Tensor]]] = reversed(sorted(batch, key=lambda x: x[0].nelement()))
+    sorted_batch: List[Tuple[List[torch.Tensor, torch.Tensor]]] = reversed(
+        sorted(batch, key=lambda x: x[0].nelement())
+    )
 
     texts_indx: List[torch.Tensor] = []
     labels: List[torch.Tensor] = []
 
     for tensored_text, label in sorted_batch:
-      if tensored_text.nelement() > 0:
-        texts_indx.append(tensored_text)
-        labels.append(label)
+        if tensored_text.nelement() > 0:
+            texts_indx.append(tensored_text)
+            labels.append(label)
 
     lengths: List[int] = [tensor_text.nelement() for tensor_text in texts_indx]
 

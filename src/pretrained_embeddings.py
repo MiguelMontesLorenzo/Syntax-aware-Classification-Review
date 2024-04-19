@@ -17,7 +17,9 @@ class SkipGramNeg(nn.Module):
     - out_embed (nn.Embedding): embedding layer for output words.
     """
 
-    def __init__(self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None):
+    def __init__(
+        self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None
+    ):
         super().__init__()
         self.vocab_size: int = vocab_size
         self.embed_dim: int = embed_dim

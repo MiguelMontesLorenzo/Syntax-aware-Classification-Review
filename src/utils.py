@@ -42,8 +42,12 @@ def accuracy(predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     return accuracy_measure
 
 
-def load_pretrained_weights(pretrained_weights_path, big_vocab_to_int, vocab_to_int) -> torch.Tensor:
-    state_dict = torch.load(pretrained_weights_path, map_location=torch.device("cpu"))["in_embed.weight"]
+def load_pretrained_weights(
+    pretrained_weights_path, big_vocab_to_int, vocab_to_int
+) -> torch.Tensor:
+    state_dict = torch.load(pretrained_weights_path, map_location=torch.device("cpu"))[
+        "in_embed.weight"
+    ]
 
     with open(big_vocab_to_int, "r") as file:
         previous_vocab_to_int = json.loads(file.read())

@@ -73,13 +73,17 @@ def main(start_epoch: int = 0) -> None:
         vocab_size: int = len(vocab_to_int)
 
         pretrained_model: SkipGramNeg = SkipGramNeg(vocab_size, embed_dim=hidden_size)
-        pretrained_weights_path: str = os.path.join(pretrained_folder, pretrained_weights_filename)
+        pretrained_weights_path: str = os.path.join(
+            pretrained_folder, pretrained_weights_filename
+        )
         pretrained_dict_path: str = os.path.join(pretrained_folder, big_vocab_to_int)
 
-        weights: torch.Tensor = load_pretrained_weights(pretrained_weights_path, pretrained_dict_path, vocab_to_int)
+        weights: torch.Tensor = load_pretrained_weights(
+            pretrained_weights_path, pretrained_dict_path, vocab_to_int
+        )
 
         pretrained_model.load_pretrained_embeddings(weights)
-        
+
         # Define model
         model: RNTN = RNTN(
             word2index=word2index,
@@ -87,7 +91,7 @@ def main(start_epoch: int = 0) -> None:
             output_size=output_size,
             simple_RNN=simple_RNN,
             device=device,
-            pretrained_model=pretrained_model
+            pretrained_model=pretrained_model,
         ).to(device)
 
     else:
@@ -97,7 +101,7 @@ def main(start_epoch: int = 0) -> None:
             hidden_size=hidden_size,
             output_size=output_size,
             simple_RNN=simple_RNN,
-            device=device
+            device=device,
         ).to(device)
 
     if start_epoch > 0:

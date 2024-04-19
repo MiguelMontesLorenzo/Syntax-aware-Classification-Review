@@ -50,7 +50,7 @@ class Tree:
             to a tree.
         - openChar (str): string that delimits the start of a constituyent.
         - closeChar (str): string that delimits the start of a constituyent.
-        
+
         Returns:
         - None
         """
@@ -168,13 +168,8 @@ def clean_sentence(sentence: str) -> str:
     - sentence (str): cleaned sentence.
     """
 
-    substitutions: Dict[str, str] = {
-        "``": "",
-        "''": ""
-    }
+    substitutions: Dict[str, str] = {"``": "", "''": ""}
 
     for key, value in substitutions.items():
         sentence = sentence.replace(key, value)
     return sentence.lower()
-
-

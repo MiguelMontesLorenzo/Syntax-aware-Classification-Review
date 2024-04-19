@@ -3,16 +3,19 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from typing import List, Dict
 
-from src.Embeddings.skipgram import SkipGramNeg, NegativeSamplingLoss  
+from src.Embeddings.skipgram import SkipGramNeg, NegativeSamplingLoss
 from src.Embeddings.data_processing import cosine_similarity
 
-def train_skipgram(model: SkipGramNeg,
-                   dataloader: DataLoader,
-                   int_to_vocab: Dict[int, str],
-                   epochs: int = 5,
-                   learning_rate: float = 0.003, 
-                   print_every: int = 1500,
-                   device: str = "cpu"):
+
+def train_skipgram(
+    model: SkipGramNeg,
+    dataloader: DataLoader,
+    int_to_vocab: Dict[int, str],
+    epochs: int = 5,
+    learning_rate: float = 0.003,
+    print_every: int = 1500,
+    device: str = "cpu",
+):
     """
     Trains the SkipGram model using negative sampling.
 
@@ -38,7 +41,7 @@ def train_skipgram(model: SkipGramNeg,
     n_samples: int = 3
     # Training loop
     for epoch in range(epochs):
-        
+
         for input_words, target_words in dataloader:
             steps += 1
             # Convert inputs and context words into tensors
@@ -52,7 +55,7 @@ def train_skipgram(model: SkipGramNeg,
             output_vectors: torch.Tensor = model.forward_output(targets)
 
             noise_vectors = model.forward_noise(input_vectors.size(0), n_samples)
-            
+
             # negative sampling loss
             loss = criterion(input_vectors, output_vectors, noise_vectors)
 
@@ -60,15 +63,25 @@ def train_skipgram(model: SkipGramNeg,
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            
+
             if steps % print_every == 0:
                 print(f"Epoch: {epoch+1}/{epochs}, Step: {steps}, Loss: {loss.item()}")
                 # Cosine similarity
-                valid_examples, valid_similarities = cosine_similarity(model.in_embed, device=device)
+                valid_examples, valid_similarities = cosine_similarity(
+                    model.in_embed, device=device
+                )
                 _, closest_idxs = valid_similarities.topk(6)
 
-                valid_examples, closest_idxs = valid_examples.to('cpu'), closest_idxs.to('cpu')
+                valid_examples, closest_idxs = valid_examples.to(
+                    "cpu"
+                ), closest_idxs.to("cpu")
                 for ii, valid_idx in enumerate(valid_examples):
-                    closest_words = [int_to_vocab[idx.item()] for idx in closest_idxs[ii]][1:]
-                    print(int_to_vocab[valid_idx.item()] + " | " + ', '.join(closest_words))
+                    closest_words = [
+                        int_to_vocab[idx.item()] for idx in closest_idxs[ii]
+                    ][1:]
+                    print(
+                        int_to_vocab[valid_idx.item()]
+                        + " | "
+                        + ", ".join(closest_words)
+                    )
                 print("...\n")
