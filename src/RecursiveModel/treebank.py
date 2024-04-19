@@ -156,13 +156,8 @@ def clean_sentence(sentence: str) -> str:
     """
 
     substitutions: Dict[str, str] = {
-        " '": "'",
-        " n'": "n'",
-        "`` ": "",
+        "``": "",
         "''": "",
-        "` ": "",
-        "' ": " ",
-        "'s": "'s",
     }
 
     for key, value in substitutions.items():

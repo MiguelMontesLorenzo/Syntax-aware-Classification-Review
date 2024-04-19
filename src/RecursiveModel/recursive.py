@@ -35,7 +35,7 @@ class RNTN(nn.Module):
         super().__init__()
         self.word2index: Dict[str, int] = word2index
         # We could add pretrained embeddings:
-        # self.embed = pretrained_model.embedding
+        # self.embed = pretrained_model.in_embed
 
         self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(device)
         self.V: nn.ParameterList = nn.ParameterList(

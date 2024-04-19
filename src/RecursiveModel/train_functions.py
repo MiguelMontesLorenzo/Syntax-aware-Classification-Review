@@ -17,7 +17,7 @@ def train(
     loss_function: torch.nn.Module,
     writer: SummaryWriter,
     epoch: int,
-    root_only: bool = False
+    root_only: bool = False,
 ) -> None:
     """
     Train step function.
@@ -69,7 +69,6 @@ def train(
         accuracies.append(accuracy_value)
 
     acc: float = torch.mean(torch.tensor(accuracies))
-
 
     # Log training loss to TensorBoard
     writer.add_scalar("train/loss", np.mean(losses), epoch)
