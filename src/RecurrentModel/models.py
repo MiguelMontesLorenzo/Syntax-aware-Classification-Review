@@ -38,7 +38,7 @@ class RNN(nn.Module):
         num_layers: int = 1,
         bidirectional: bool = True,
         device: str = "cpu",
-        pretrained_model: SkipGramNeg = False,
+        pretrained_model: SkipGramNeg = None,
     ) -> None:
         """
         Initializes the RNN model with given embedding weights, hidden dimension, and number of layers.

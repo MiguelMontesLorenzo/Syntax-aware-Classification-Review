@@ -37,7 +37,7 @@ def main() -> None:
     batch_size: int = 128
     # step_size: int = 20
     # gamma: float = 0.1
-    our_embeddings = False
+    our_embeddings: bool = False
 
     patience: int = 10
     best_val_loss: float = float("inf")
@@ -50,13 +50,15 @@ def main() -> None:
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    device = "cpu"
+
     download_data()
 
     # empty nohup file
     open("nohup.out", "w").close()
 
     # define writer
-    name: str = "tue_1"
+    name: str = "fri_1"
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
 
     train_loader, val_loader, test_loader, vocab_to_int, _ = (
@@ -101,7 +103,7 @@ def main() -> None:
     else:
         # Define model
         model: RNN = RNN(
-            word2index=word2index,
+            word2index=vocab_to_int,
             embedding_dim=embedding_dim,
             hidden_dim=hidden_size,
             num_classes=NUM_CLASSES,
@@ -120,6 +122,7 @@ def main() -> None:
     # scheduler: StepLR = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
     print(f"Training Recurrent model on {device}...")
+    print("Len vocab", len(vocab_to_int))
 
     # Train loop
     for epoch in tqdm(range(epochs)):
