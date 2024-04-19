@@ -160,9 +160,15 @@ cython_debug/
 #.idea/
 
 
-
 # Models and data
 data_sst/
 models/
 runs/
 pretrained/
+
+# Data folder
+data/
+data_sst/
+
+# Runs folder
+runs/
