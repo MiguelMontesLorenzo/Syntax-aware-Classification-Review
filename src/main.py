@@ -1,13 +1,18 @@
+import os
 import torch
-from src.data_processing import download_data, load_sentences, build_vocab, bag_of_words
-from src.utils import evaluate_classification
 
+from src.data_processing import download_data, load_sentences, build_vocab, bag_of_words
+from src.utils import evaluate_classification, list_random_shuffle
 from src.naive_bayes import NaiveBayes
 from src.serial_naive_bayes import SerialNaiveBayes
 
+
 modality = "SERIAL"  #"VECTOR-WISE"
-trn_sample_size = 20000#100
-tst_sample_size = 20000#100
+trn_sample_size = 20000
+tst_sample_size = 20000
+save_dir = "models"
+load_model = True
+save_model = False
 
 def main() -> None:
 
@@ -45,6 +50,10 @@ def main() -> None:
     trn_labels = trn_labels[:trn_sample_size]
     tst_labels = tst_labels[:tst_sample_size]
 
+
+
+
+
     # Build vocabulary
     sentences = trn_sentences + tst_sentences
 
@@ -63,8 +72,7 @@ def main() -> None:
     print(f"Total sentences: {len(sentences)}")
     processed_tst_features: list[torch.Tensor] = \
         [bag_of_words(sentence, wrd2idx) for sentence in tst_sentences]
-
-
+    
 
     if modality == "VECTOR-WISE":
 
@@ -93,10 +101,17 @@ def main() -> None:
         trn_labels: torch.Tensor = torch.tensor(trn_labels, dtype=torch.int)
         tst_labels: torch.Tensor = torch.tensor(tst_labels, dtype=torch.int)
 
-        print("Training Naive Bayes model...")
+        # creating model object
         number_of_classes = 5
         nb_model = SerialNaiveBayes(wrd2idx, number_of_classes)
-        nb_model.fit(processed_trn_features, trn_labels)
+
+        print("Training Naive Bayes model...")
+        if load_model:
+            ckpt_name = "20240420_195822"
+            ckpt_path = os.path.join(save_dir, ckpt_name)
+            nb_model.load(ckpt_path)
+        else:
+            nb_model.fit(processed_trn_features, trn_labels)
 
         # Evaluate Naive Bayes model
         print("Evaluating Naive Bayes model...")
@@ -105,6 +120,13 @@ def main() -> None:
             torch.tensor(nb_predictions), tst_labels
         )
         print("Naive Bayes Metrics:", nb_metrics)
+
+        if save_model:
+            print("Saving Model ...")
+            nb_model.save(save_dir)
+
+
+        
 
 
 if __name__ == "__main__":

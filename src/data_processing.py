@@ -92,12 +92,10 @@ def load_sentences(infile: str) -> tuple[list[str], list[int]]:
         lines: list[str] = file.readlines()
 
     for line in lines:
-        pattern = r"[^0-9\s]"
-        numbers: str = re.sub(pattern, "", line)
-        labels.append(int(numbers.split()[-1]))
         tree: Tree = Tree(line)
         concat: str = " ".join(tree.get_words())
         sentences.append(tokenize(concat))
+        labels.append(tree.labels[-1])
 
     return (sentences, labels)
 

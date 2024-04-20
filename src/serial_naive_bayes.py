@@ -1,6 +1,6 @@
 import torch
-from typing import Dict
-
+import datetime
+import os
 
 
 class SerialNaiveBayes:
@@ -82,3 +82,41 @@ class SerialNaiveBayes:
 
         probs = self.predict_probabilities(sentence)
         return torch.argmax(probs)
+    
+
+    def save(self, path: str) -> None:
+        """
+        Saves the model to the given path.
+        """
+        time_string = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        ckpt_name = os.path.join(path, time_string)
+
+        # create directory
+        if not os.path.exists(ckpt_name):
+            os.makedirs(ckpt_name)
+
+        # save model parameters
+        words_path = os.path.join(ckpt_name, f"log_words_tensor.pt")
+        class_path = os.path.join(ckpt_name, f"log_class_tensor.pt")
+
+        print(f"Saving model parameters to {ckpt_name}")
+   
+        torch.save(self.log_words_tensor, words_path)
+        torch.save(self.log_class_tensor, class_path)
+
+        return None
+    
+    def load(self, path) -> None:
+        """
+        Saves the model to the given path.
+        """
+
+        print(f"Loading model parameters from {path}")
+        
+        words_path = os.path.join(path, f"log_words_tensor.pt")
+        class_path = os.path.join(path, f"log_class_tensor.pt")
+
+        self.log_words_tensor = torch.load(words_path)
+        self.log_class_tensor = torch.load(class_path)
+
+        return None

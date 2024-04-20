@@ -1,5 +1,7 @@
 from typing import List, Dict
+
 import torch
+import numpy as np
 import re
 import string
 
@@ -96,13 +98,8 @@ def evaluate_classification(
     Returns:
         dict: A dictionary containing the calculated metrics.
     """
-
-    print(predictions.shape, labels.shape)
-    print(predictions)
-    print(labels)
-
+    
     accuracy = torch.sum(predictions == labels) / len(labels)
-
     metrics = {
         "accuracy": accuracy.item(),
     }
@@ -110,4 +107,27 @@ def evaluate_classification(
     return metrics
 
 
-####
+def randomize_indices(N: int) -> np.array:
+    """
+    Randomly shuffles the rows of a 2D tensor.
+
+    """
+
+    indices = np.arange(N)
+    shuffled_indices = np.random.permutation(indices)
+
+    return shuffled_indices
+
+def list_random_shuffle(input_list: list[int]) -> torch.Tensor:
+    """
+    Randomly shuffles the rows of a 2D tensor.
+
+    """
+    array = np.array(input_list)
+    random_indices = randomize_indices(array.shape())
+    array = array[random_indices]
+    shuffled_list = array.tolist()
+
+    return shuffled_list
+
+
