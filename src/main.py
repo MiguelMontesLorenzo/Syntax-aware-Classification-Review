@@ -11,7 +11,7 @@ from src.serial_naive_bayes import SerialNaiveBayes
 # modality = "VECTOR-WISE"
 modality = "SERIAL"
 
-trn_sample_size = 17088
+trn_sample_size = 9645
 tst_sample_size = 2210
 
 save_dir = "models"
@@ -43,7 +43,7 @@ def main() -> None:
 
     # Load data
     trn_sentences, trn_labels = load_sentences(trn_path)
-    val_sentences, val_labels = load_sentences(trn_path)
+    val_sentences, val_labels = load_sentences(val_path)
     tst_sentences, tst_labels = load_sentences(tst_path)
     trn_sentences.extend(val_sentences)
     trn_labels.extend(val_labels)

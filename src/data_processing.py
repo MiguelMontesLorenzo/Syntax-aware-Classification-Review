@@ -125,42 +125,6 @@ def build_vocab(sentences: str) -> tuple[dict[str, int], dict[int, str]]:
     return (wrd2idx, idx2wrd)
 
 
-# def bag_of_words(
-#     text: list[str], vocab: dict[str, int], binary: bool = False
-# ) -> torch.Tensor:
-#     """
-#     Converts a list of words into a bag-of-words vector based on the provided
-#     vocabulary.
-#     Supports both binary and full (frequency-based) bag-of-words representations.
-
-#     Args:
-#         text (List[str]): A list of words to be vectorized.
-#         vocab (Dict[str, int]): A dictionary representing the vocabulary with words as
-#         keys and indices as values.
-#         binary (bool): If True, use binary BoW representation; otherwise, use full BoW
-#         representation.
-
-#     Returns:
-#         (torch.Tensor): A tensor representing the bag-of-words vector.
-#     """
-#     # TODO: Converts list of words into BoW, take into account the binary vs full
-
-#     bow: torch.Tensor
-
-#     if binary:
-#         bow = torch.Tensor([word in text for word in vocab])
-#     else:
-#         filtered_text: list[str] = [word for word in text if word in vocab]
-#         frequency_counter = Counter({element: 0 for element in vocab.keys()})
-#         frequency_counter.update(filtered_text)
-
-#         bow: torch.Tensor = torch.zeros(size=[len(vocab)], dtype=torch.float32)
-#         for word, i in vocab.items():
-#             bow[i] = frequency_counter[word]
-
-#     return bow
-
-
 def bag_of_words(text: list[str], vocab: dict[str, int], binary: bool = False) -> torch.Tensor:
     """
     Converts a list of words into a bag-of-words vector based on the provided
