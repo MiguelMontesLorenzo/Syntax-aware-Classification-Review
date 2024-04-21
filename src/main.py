@@ -1,18 +1,23 @@
 import os
 import torch
 
-from src.data_processing import download_data, load_sentences, build_vocab, bag_of_words
+from src.data_processing import \
+    download_data, load_sentences, build_vocab, bag_of_words, save_bows, load_bows
 from src.utils import evaluate_classification, list_random_shuffle
 from src.naive_bayes import NaiveBayes
 from src.serial_naive_bayes import SerialNaiveBayes
 
 
-modality = "SERIAL"  #"VECTOR-WISE"
-trn_sample_size = 20000
-tst_sample_size = 20000
+# modality = "VECTOR-WISE"
+modality = "SERIAL"
+
+trn_sample_size = 17088
+tst_sample_size = 2210
+
 save_dir = "models"
-load_model = True
+load_model = False
 save_model = False
+
 
 def main() -> None:
 
@@ -35,7 +40,6 @@ def main() -> None:
     tst_sentences: list[str]
     tst_labels: list[int]
     sentences: list[str]
-    labels: list[int]
 
     # Load data
     trn_sentences, trn_labels = load_sentences(trn_path)
@@ -50,12 +54,9 @@ def main() -> None:
     trn_labels = trn_labels[:trn_sample_size]
     tst_labels = tst_labels[:tst_sample_size]
 
-
-
-
-
     # Build vocabulary
     sentences = trn_sentences + tst_sentences
+
 
     print("Building vocabulary...")
     wrd2idx: dict[str, int]
@@ -63,16 +64,16 @@ def main() -> None:
 
     # Prepare features and labels for the models
     print("Preparing training BoW...")
-    print(f"Total sentences: {len(sentences)}")
+    print(f"Total sentences: {len(trn_sentences)}")
     processed_trn_features: list[torch.Tensor] = \
         [bag_of_words(sentence, wrd2idx) for sentence in trn_sentences]
 
     # Prepare features and labels for the models
-    print("Preparing training BoW...")
-    print(f"Total sentences: {len(sentences)}")
+    print("Preparing testing BoW...")
+    print(f"Total sentences: {len(tst_sentences)}")
     processed_tst_features: list[torch.Tensor] = \
         [bag_of_words(sentence, wrd2idx) for sentence in tst_sentences]
-    
+        
 
     if modality == "VECTOR-WISE":
 
@@ -107,15 +108,16 @@ def main() -> None:
 
         print("Training Naive Bayes model...")
         if load_model:
-            ckpt_name = "20240420_195822"
-            ckpt_path = os.path.join(save_dir, ckpt_name)
+            ckpt_name = os.path.join("stanford_dataset_train")
+            ckpt_path = os.path.join(save_dir, "serial", ckpt_name)
             nb_model.load(ckpt_path)
         else:
             nb_model.fit(processed_trn_features, trn_labels)
 
         # Evaluate Naive Bayes model
         print("Evaluating Naive Bayes model...")
-        nb_predictions: list[int] = [nb_model.predict(ex) for ex in processed_tst_features]
+        nb_predictions: list[int] = \
+            [nb_model.predict(ex) for ex in processed_tst_features]
         nb_metrics: torch.Dict[str, float] = evaluate_classification(
             torch.tensor(nb_predictions), tst_labels
         )
@@ -124,9 +126,6 @@ def main() -> None:
         if save_model:
             print("Saving Model ...")
             nb_model.save(save_dir)
-
-
-        
 
 
 if __name__ == "__main__":

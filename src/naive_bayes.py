@@ -1,14 +1,6 @@
 import torch
-
-# from collections import Counter
+from collections import Counter
 from typing import Dict
-
-# try:
-#     from src.utils import SentimentExample
-#     from src.data_processing import bag_of_words
-# except ImportError:
-#     from utils import SentimentExample
-#     from data_processing import bag_of_words
 
 
 class NaiveBayes:
@@ -35,8 +27,12 @@ class NaiveBayes:
             delta (float): Smoothing parameter for Laplace smoothing.
         """
 
-        self.labels = labels
+        # print((features[0] > 0)[0])
+        # print(torch.nonzero(features[0] > 0))
+        # assert False
+
         self.class_priors = self.estimate_class_priors(labels)
+        self.unique_labels = torch.arange(len(self.class_priors.keys()))
         self.vocab_size = labels.shape[0]
         self.conditional_probabilities = self.estimate_conditional_probabilities(
             features, labels, delta
@@ -56,15 +52,8 @@ class NaiveBayes:
             estimated prior probabilities.
         """
 
-        unique_integers: torch.Tensor
-        counts: torch.Tensor
-        unique_integers, counts = torch.unique(labels, return_counts=True)
-        collection_size: int = float(labels.shape[0])
-
-        class_priors: Dict[int, torch.Tensor] = {
-            int(key): torch.tensor(int(value)) / collection_size
-            for key, value in zip(unique_integers.tolist(), counts.tolist())
-        }
+        class_priors = {label: torch.tensor([count]) 
+            for label, count in Counter(labels.tolist()).items()}
 
         return class_priors
 
@@ -94,10 +83,12 @@ class NaiveBayes:
         word_probs_by_class: Dict[int, torch.Tensor] = dict({})
 
         # Compute: (count(c) + VocabularySize * delta)
+        # print(features.shape)
+        # assert False
 
         class_labels: list = labels.unique().tolist()
         smoothed_vocabulary_word_frecuencies: torch.Tensor = (
-            torch.sum(features, dim=0) + labels.shape[0] * delta
+            torch.sum(features, dim=0) + features.shape[1] * delta#labels.shape[0] * delta
         )
 
         for class_label in class_labels:
@@ -161,7 +152,7 @@ class NaiveBayes:
                 "Model must be trained before estimating class posteriors."
             )
 
-        log_posteriors: torch.Tensor = torch.empty(size=self.labels.shape)
+        log_posteriors: torch.Tensor = torch.zeros_like(input=(self.unique_labels))
 
         log_priors: dict[int, torch.Tensor] = {
             i: torch.log(class_prior) for i, class_prior in self.class_priors.items()
@@ -171,8 +162,7 @@ class NaiveBayes:
             for i, class_cond_prob in self.conditional_probabilities.items()
         }
 
-        for i, class_label in enumerate(self.labels.tolist()):
-
+        for i, class_label in enumerate(self.unique_labels.tolist()):
             log_posteriors[class_label] = (
                 feature @ log_conds[class_label] + log_priors[class_label]
             )

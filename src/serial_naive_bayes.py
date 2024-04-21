@@ -8,10 +8,6 @@ class SerialNaiveBayes:
         """
         Initializes the Naive Bayes classifier
         """
-        # self.class_priors: Dict[int, torch.Tensor] = None
-        # self.conditional_probabilities: Dict[int, torch.Tensor] = None
-        # self.vocab_size: int = None
-        # self.labels: torch.Tensor
 
         self.vocabulary = vocabulary
         self.vocab_size = len(vocabulary)
@@ -43,11 +39,9 @@ class SerialNaiveBayes:
             if i % 1000 == 0:
                 print(f"Processing sentence {i}")
 
-            sentence_label = int(labels[i].item() - 1)
+            sentence_label = int(labels[i].item())
             class_tensor[sentence_label] += 1
-            for word_idx in sentence:
-                idx = int(word_idx.item())
-                words_tensor[idx][sentence_label] += 1
+            words_tensor[:, sentence_label] += sentence.to(dtype=torch.float)
 
         
         # compute probabilities
@@ -71,17 +65,15 @@ class SerialNaiveBayes:
 
         conditional_log_probs = torch.einsum('ij,i->j', self.log_words_tensor, sentence)
         log_probs = conditional_log_probs + self.log_class_tensor
-        probs = torch.exp(log_probs)
-
-        return probs
+        return log_probs
     
     def predict(self, sentence: torch.Tensor) -> torch.Tensor:
         """
         Predicts the class labels for the given features.
         """
 
-        probs = self.predict_probabilities(sentence)
-        return torch.argmax(probs)
+        log_probs = self.predict_probabilities(sentence)
+        return torch.argmax(log_probs).item()
     
 
     def save(self, path: str) -> None:
@@ -89,7 +81,7 @@ class SerialNaiveBayes:
         Saves the model to the given path.
         """
         time_string = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        ckpt_name = os.path.join(path, time_string)
+        ckpt_name = os.path.join(path, "serial", time_string)
 
         # create directory
         if not os.path.exists(ckpt_name):
@@ -113,8 +105,8 @@ class SerialNaiveBayes:
 
         print(f"Loading model parameters from {path}")
         
-        words_path = os.path.join(path, f"log_words_tensor.pt")
-        class_path = os.path.join(path, f"log_class_tensor.pt")
+        words_path = os.path.join(path, "serial", "log_words_tensor.pt")
+        class_path = os.path.join(path, "serial", "log_class_tensor.pt")
 
         self.log_words_tensor = torch.load(words_path)
         self.log_class_tensor = torch.load(class_path)
