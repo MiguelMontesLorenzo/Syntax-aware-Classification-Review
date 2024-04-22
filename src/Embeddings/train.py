@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from typing import List, Dict
+from typing import Dict
 
 from src.Embeddings.skipgram import SkipGramNeg, NegativeSamplingLoss
 from src.Embeddings.data_processing import cosine_similarity
@@ -22,16 +22,22 @@ def train_skipgram(
     Args:
     - model (SkipGram): SkipGram model to be trained.
     - words (List[int]): list of words (integers) to train on.
-    - sampled_correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
+    - sampled_correspondences (Dict[int, str]): association of
+    word index in tokens and the index of the sentence that
     word belongs to.
-    - sentences (List[str]): list of correctly processed sentences fomr both files.
-    - int_to_vocab (Dict[int, str]): dictionary mapping integers back to vocabulary words.
+    - sentences (List[str]): list of correctly processed sentences fomr both
+    files.
+    - int_to_vocab (Dict[int, str]): dictionary mapping integers back to
+    vocabulary words.
     - batch_size (int): size of each batch of input and target words.
     - epochs (int): The number of epochs to train for.
     - learning_rate (float): learning rate for the optimizer.
-    - window_size (int): the size of the context window for generating training pairs.
-    - print_every (int): the frequency of printing the training loss and validation examples.
-    - device (str): the device (CPU or GPU) where the tensors will be allocated.
+    - window_size (int): the size of the context window for generating
+    training pairs.
+    - print_every (int): the frequency of printing the training loss and
+    validation examples.
+    - device (str): the device (CPU or GPU) where the tensors will be
+    allocated.
     """
     # Define loss and optimizer
     criterion: torch.nn.Module = NegativeSamplingLoss()
@@ -71,14 +77,16 @@ def train_skipgram(
                 )
                 _, closest_idxs = valid_similarities.topk(6)
 
-                valid_examples, closest_idxs = valid_examples.to("cpu"), closest_idxs.to(
+                valid_examples, closest_idxs = valid_examples.to(
                     "cpu"
-                )
+                ), closest_idxs.to("cpu")
                 for ii, valid_idx in enumerate(valid_examples):
                     closest_words = [
                         int_to_vocab[idx.item()] for idx in closest_idxs[ii]
                     ][1:]
                     print(
-                        int_to_vocab[valid_idx.item()] + " | " + ", ".join(closest_words)
+                        int_to_vocab[valid_idx.item()]
+                        + " | "
+                        + ", ".join(closest_words)
                     )
                 print("...\n")

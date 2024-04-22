@@ -25,19 +25,25 @@ def load_and_preprocess_data(
     Load text and csv data and preprocess it using a tokenize function.
 
     Args:
-    - csv_infile (str): Path to the input csv file containing data form IMBD movie reviews.
+    - csv_infile (str): Path to the input csv file containing data form
+    IMBD movie reviews.
 
     Returns:
-    - sentences (List[str]): list of correctly processed sentences fomr both files.
-    - tokens (List[str]): list of preprocessed and tokenized words from the input data.
-    - correspondences (Dict[int, Tuple[int, int]]): association of word index in tokens and the index of the sentence that
+    - sentences (List[str]): list of correctly processed sentences fomr
+    both files.
+    - tokens (List[str]): list of preprocessed and tokenized words from the
+    input data.
+    - correspondences (Dict[int, Tuple[int, int]]): association of word index
+    in tokens and the index of the sentence that
     word belongs to.
-    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
-    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique
+    integers.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to
+    words.
     """
     download_data()
 
-    train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
+    (train_data, val_data, test_data, vocab_to_int, int_to_vocab) = preprocess_data()
 
     sentences: List[str] = process_csv(csv_file)
 
@@ -145,16 +151,21 @@ def update_lookup_tables(
     vocab_to_int: Dict[str, int], int_to_vocab: Dict[int, str], sentences: List[str]
 ) -> Tuple[Dict[str, int], Dict[int, str]]:
     """
-    Updates previously built dictionaries with the vocabulary from the IMBD movies reviews.
+    Updates previously built dictionaries with the vocabulary from the IMBD
+    movies reviews.
 
     Args:
-    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
-    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique
+    integers.
+    - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers
+    to words.
     - sentences (List[str]): sentences from the IMBD reviews.
 
     Returns:
-    - vocab_to_int (Dict[str, int]): updated dictionary mapping words to unique integers.
-    - int_to_vocab (Dict[int, str]): updated dictionary mapping unique integers to words.
+    - vocab_to_int (Dict[str, int]): updated dictionary mapping words
+    to unique integers.
+    - int_to_vocab (Dict[int, str]): updated dictionary mapping unique
+    integers to words.
     """
     new_words: List[str] = [
         word
@@ -286,25 +297,30 @@ def subsample_words(
     threshold: float = 6e-1,
 ) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
     """
-    Perform subsampling on a list of word integers using PyTorch, aiming to reduce the
-    presence of frequent words according to Mikolov's subsampling technique. This method
-    calculates the probability of keeping each word in the dataset based on its frequency,
-    with more frequent words having a higher chance of being discarded. The process helps
-    in balancing the word distribution, potentially leading to faster training and better
-    representations by focusing more on less frequent words. It also updates the correspondences
+    Perform subsampling on a list of word integers using PyTorch, aiming to
+    reduce the presence of frequent words according to Mikolov's subsampling
+    technique. This method calculates the probability of keeping each word in
+    the dataset based on its frequency, with more frequent words having a higher
+    chance of being discarded. The process helps in balancing the word distribution,
+    potentially leading to faster training and better representations by focusing
+    more on less frequent words. It also updates the correspondences
     dictionary to only have the indexes of the sampled words.
 
     Args:
     - words (List[str]): List of words to be subsampled.
-    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
-    - correspondences (Dict[int, str]): association of word index in tokens and the index of the sentence that
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique
+    integers.
+    - correspondences (Dict[int, str]): association of word index in tokens
+    and the index of the sentence that
     word belongs to.
     - threshold (float): Threshold parameter controlling the extent of subsampling.
 
     Returns:
-    - train_words (List[int]): a list of integers representing the subsampled words, where some high-frequency words may be removed.
+    - train_words (List[int]): a list of integers representing the subsampled
+    words, where some high-frequency words may be removed.
     - freqs (Dict[str, float]): associates each word with its frequency.
-    - sampled_correspondences (Dict[int, Tuple(int)]):: association of word index in tokens and the index of the sentence that
+    - sampled_correspondences (Dict[int, Tuple(int)]):: association of word index
+    in tokens and the index of the sentence that
     word belongs to.
     """
     sampled_correspondences: Dict[int, str] = {}
@@ -387,14 +403,17 @@ def get_target(
     int_to_vocab,
 ) -> List[str]:
     """
-    Gets related words with the target word. Relationships include nearby words and dependent words.
+    Gets related words with the target word. Relationships include nearby
+    words and dependent words.
 
     Args:
-    - words (List[int]): the list of words from which context words will be selected.
+    - words (List[int]): the list of words from which context words will be
+    selected.
     - idx (int): the index of the target word.
     - dependency_tree (spacy.tokens.doc.Doc): dependency tree.
     - word_idx (int): index of the target word in the phrase.
-    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
+    - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique
+    integers.
     - window_size (int): the maximum window size for context words selection.
 
     Returns:
@@ -455,12 +474,15 @@ class EmbeddingsDataset(Dataset):
         window_size: int = 6,
     ) -> None:
         """
-        Initialize the dataset with the text data, a vocabulary-to-integer mapping, and the context size.
+        Initialize the dataset with the text data, a vocabulary-to-integer
+        mapping, and the context size.
 
         Args:
-        - tokens (List[int]): the list of preprocessed and tokenized words from the text data.
-            vocab_to_int (Dict[str, int]): A dictionary mapping words to integers.
-            context_size (int): The number of words to include in the context.
+        - tokens (List[int]): the list of preprocessed and tokenized words
+        from the text data.
+        - vocab_to_int (Dict[str, int]): A dictionary mapping words to
+            integers.
+        - context_size (int): The number of words to include in the context.
         """
         self.words: List[int] = tokens
         self.sentences: List[str] = sentences
@@ -528,21 +550,24 @@ def generate_data_loader(
     int_to_vocab: Dict[int, str],
 ):
     """
-    Load data, preprocess, create lookup tables, generate datasets, and create data loaders.
+    Load data, preprocess, create lookup tables, generate datasets, and create
+    data loaders.
 
     Args:
         infile (str): Path to the input file containing text data.
-        context_size (int): The size of the context window for the CBOW dataset.
+        context_size (int): The size of the context window for the CBOW
+        dataset.
         batch_size (int): Batch size for the data loaders.
         start_token (str):  A character used as the start token for each word.
         end_token (str): A character used as the end token for each word.
         train_pct (float): Percentage of training samples from dataset.
 
     Returns:
-        tuple: A tuple containing the training and testing DataLoader instances, vocabulary size, and the lookup tables.
+        tuple: A tuple containing the training and testing DataLoader
+        instances, vocabulary size, and the lookup tables.
     """
     # Generate Dataset
-    print(f"Creating dataset...")
+    print("Creating dataset...")
     nlp: spacy.language.Language = get_dependency_model()
     embeddings_dataset = EmbeddingsDataset(
         tokens,
@@ -572,7 +597,7 @@ def get_dependency_model() -> spacy.language.Language:
     model_name: str = "en_core_web_sm"
     try:
         nlp: spacy.language.Language = spacy.load(model_name)
-    except:
+    except Exception:
         subprocess.run(["python", "-m", "spacy", "download", model_name])
         nlp: spacy.language.Language = spacy.load(model_name)
     return nlp
@@ -584,16 +609,18 @@ def cosine_similarity(
     valid_window: int = 100,
     device: str = "cpu",
 ):
-    """Calculates the cosine similarity of validation words with words in the embedding matrix.
+    """Calculates the cosine similarity of validation words with words in the
+    embedding matrix.
 
-    This function calculates the cosine similarity between some random words and
-    embedding vectors. Through the similarities, it identifies words that are
-    close to the randomly selected words.
+    This function calculates the cosine similarity between some random
+    words and embedding vectors. Through the similarities, it identifies
+    words that are close to the randomly selected words.
 
     Args:
     - embedding (torch.nn.Embedding): a PyTorch Embedding module.
     - valid_size (int): number of random words to evaluate.
-    - valid_window (int): the range of word indices to consider for the random selection.
+    - valid_window (int): the range of word indices to consider for the
+    random selection.
     - device (str): the device (CPU or GPU) where the tensors will be allocated.
 
     Returns:
