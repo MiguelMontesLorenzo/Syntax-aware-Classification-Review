@@ -108,7 +108,7 @@ class RNTN(nn.Module):
                     )
                 )
             else:
-                word_vector: Variable = Variable(
+                word_vector = Variable(
                     torch.tensor(
                         [self.word2index["<UNK>"]], dtype=torch.long, device=self.device
                     )
