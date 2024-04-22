@@ -73,7 +73,7 @@ class RNTN(nn.Module):
 
         # V
         if self.simple_RNN:
-            self.V = torch.zeros_like(self.V, dtype=self.V.dtype, device=self.device)
+            self.V.data = torch.zeros_like(self.V.data, dtype=self.V.dtype, device=self.device)
         else:
             for param in self.V.parameters():
                 nn.init.xavier_uniform_(param)
@@ -83,7 +83,7 @@ class RNTN(nn.Module):
         nn.init.xavier_uniform_(self.W_out)
         nn.init.xavier_uniform_(self.b)
 
-    def tree_propagation(self, node: Node) -> Dict[Node, torch.Tensor]:
+    def tree_propagation(self, node:  Optional[Node]) -> Dict[Node, torch.Tensor]:
         """
         Compute the propagation of a node following the equation:
         h = f(h + Wx + b)
@@ -95,6 +95,9 @@ class RNTN(nn.Module):
         - recursive_tensor (Dict[Node, int]): Dictionary with the
         node and it's vector representation
         """
+        if node is None:
+            return {}
+
         recursive_tensor: Dict[Node, torch.Tensor] = OrderedDict()
 
         # Get the vector representation of the current node
@@ -121,10 +124,11 @@ class RNTN(nn.Module):
             recursive_tensor.update(self.tree_propagation(node.left))
             recursive_tensor.update(self.tree_propagation(node.right))
 
-            children_stack: torch.Tensor = torch.cat(
-                [recursive_tensor[node.left], recursive_tensor[node.right]],
-                1,
-            )
+            if node.left is not None and node.right is not None:
+                children_stack: torch.Tensor = torch.cat(
+                    [recursive_tensor[node.left], recursive_tensor[node.right]],
+                    1,
+                )
 
             Wx: torch.Tensor = torch.matmul(children_stack, self.W)
 
