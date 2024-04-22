@@ -12,7 +12,7 @@ def train(
     model: torch.nn.Module,
     batch_size: int,
     train_data: List[Tree],
-    device: str,
+    device: torch.device,
     optimizer: torch.optim.Optimizer,
     loss_function: torch.nn.Module,
     writer: SummaryWriter,
@@ -79,7 +79,7 @@ def val(
     model: torch.nn.Module,
     batch_size: int,
     val_data: List[Tree],
-    device: str,
+    device: torch.device,
     loss_function: torch.nn.Module,
     writer: SummaryWriter,
     epoch: int,
@@ -143,7 +143,7 @@ def test(
     model: torch.nn.Module,
     batch_size: int,
     test_data: List[Tree],
-    device: str,
+    device: torch.device,
     root_only=False,
 ) -> float:
     """

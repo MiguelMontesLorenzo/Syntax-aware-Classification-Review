@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 import os
 import requests
 import zipfile
@@ -6,12 +6,13 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
+from io import TextIOWrapper
 
 from src.treebank import Tree
 from src.RecursiveModel.utils import flatten
 
 
-def download_file(url: str, save_dir: str, filename: str) -> None:
+def download_file(url: str, save_dir: str, filename: str) -> str:
     """
     Args:
     - url (str): url of the dataset.
@@ -19,7 +20,7 @@ def download_file(url: str, save_dir: str, filename: str) -> None:
     - file_name (str): name of the file.
 
     Returns:
-    - None
+    - file_path (str)
     """
     # Get the file path to save to
     filepath = os.path.join(save_dir, filename)
@@ -89,8 +90,9 @@ def load_trees(file: str) -> List[Tree]:
     """
     filename: str = "data_sst/trees/" + file + ".txt"
     print(f"Loading {filename} trees...")
-    with open(filename, "r", encoding="utf-8") as file:
-        trees: List[Tree] = [Tree(line) for line in file.readlines()]
+    encoding: TextIOWrapper = "utf-8"
+    with open(filename, "r", encoding=encoding) as file:
+        trees: List[Tree] = [Tree(line.strip()) for line in file.readlines()]
 
     return trees
 
@@ -107,7 +109,7 @@ class SSTDataset(Dataset):
             context_size (int): The number of words to include in the context.
         """
         self.vocab_to_int: Dict[str, int] = vocab_to_int
-        self.data: List[Tuple[List[str], int]] = [
+        self.data: List[Tuple[List[Optional[str]], int]] = [
             (tree.get_words(), tree.labels[-1]) for tree in data
         ]
 
@@ -160,7 +162,7 @@ def preprocess_data() -> (
 
 def generate_dataloaders(
     batch_size=128, num_workers=4
-) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int]]:
+) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int], Dict[int, str]]:
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
     train_dataset: Dataset = SSTDataset(train_data, vocab_to_int)
@@ -248,13 +250,13 @@ def collate_fn(
 
     lengths: List[int] = [tensor_text.nelement() for tensor_text in texts_indx]
 
-    lengths: torch.Tensor = torch.tensor(lengths)
+    lengths_torch: torch.Tensor = torch.tensor(lengths)
 
     texts_padded: torch.Tensor = pad_sequence(texts_indx, batch_first=True)
 
-    labels: torch.Tensor = torch.tensor(labels)
+    labels_torch: torch.Tensor = torch.tensor(labels)
 
-    return texts_padded, labels, lengths
+    return texts_padded, labels_torch, lengths_torch
 
 
 def load_vocab(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
