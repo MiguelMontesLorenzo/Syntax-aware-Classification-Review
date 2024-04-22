@@ -4,7 +4,7 @@ from src.data import load_trees
 from src.treebank import Tree
 
 if __name__ == "__main__":
-    train_data: List[Tree] = load_trees("train")
+    train_data: List[Tree] = load_trees("test+")
     labels = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
 
     for tree in train_data:

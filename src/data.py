@@ -114,7 +114,7 @@ class SSTDataset(Dataset):
         """Return the number of items in the dataset."""
         return len(self.data)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         """
         Return a single item from the dataset.
 
