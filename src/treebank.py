@@ -62,7 +62,7 @@ class Tree:
             tokens += list(toks)
         self.root: Node = self.parse(tokens)
 
-        self.labels: List[Optional(int)] = self.get_labels(self.root)
+        self.labels: List[Optional[int]] = self.get_labels(self.root)
         self.num_words: int = len(self.labels)
 
     def parse(self, tokens: List[str], parent: Optional[Node] = None) -> Node:
