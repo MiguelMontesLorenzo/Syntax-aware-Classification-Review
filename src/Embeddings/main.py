@@ -86,7 +86,7 @@ def main():
         print("Step 8: Visualizing the word embeddings...")
     else:
         print("Step 3: Loading train model...")
-        model: SkipGramNeg = SkipGramNeg(len(vocab_to_int), embedding_dim).to(device)
+        model = SkipGramNeg(len(vocab_to_int), embedding_dim).to(device)
         model.load_state_dict(torch.load(model_path))
         model.eval()
         print("Model Loaded.")

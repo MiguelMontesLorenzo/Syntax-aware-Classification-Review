@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Set
+from typing import List, Tuple, Dict, Set, Callable, Optional
 from collections import Counter
 import torch
 import random
@@ -7,8 +7,8 @@ import re
 import csv
 import subprocess
 
-
 from math import sqrt
+from io import TextIOWrapper
 from torch.utils.data import Dataset, DataLoader
 
 from src.Embeddings.utils import tokenize
@@ -19,7 +19,7 @@ from src.data import load_trees, download_data
 def load_and_preprocess_data(
     csv_file: str,
 ) -> Tuple[
-    List[str], List[str], Dict[int, Tuple[int, int]], Dict[str, int], Dict[int, str]
+    List[str], List[str], Dict[int, tuple[int, int]], Dict[str, int], Dict[int, str]
 ]:
     """
     Load text and csv data and preprocess it using a tokenize function.
@@ -115,7 +115,8 @@ def obtain_sentences(train_data, val_data, test_data) -> List[str]:
 
     for tree in whole_data:
         # New sentence
-        sentence: str = " ".join(tree.get_words())
+        words: list[Optional[str]] = tree.get_words()
+        sentence: str = " ".join(words)
         splitted_sentences: List[str] = split_sentence(sentence)
         filtered_sentences: List[str] = filter_sentence(splitted_sentences)
 
@@ -137,10 +138,11 @@ def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, st
     - vocab_to_int (Dict[str, int]): Dictionary mapping words to unique integers.
     - int_to_vocab (Dict[int, str]): Dictionary mapping unique integers to words.
     """
-    words: List[str] = [word for tree in data for word in tree.get_words()]
+    words: List[Optional[str]] = [word for tree in data for word in tree.get_words()]
 
     word_counts: Counter = Counter(words)
-    sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)
+    key_value: Callable = word_counts.get
+    sorted_vocab: List[str] = sorted(word_counts, key=key_value, reverse=True)
 
     int_to_vocab: Dict[int, str] = {i: word for i, word in enumerate(sorted_vocab)}
     vocab_to_int: Dict[str, int] = {word: i for i, word in int_to_vocab.items()}
@@ -175,7 +177,8 @@ def update_lookup_tables(
     ]
 
     word_counts: Counter = Counter(new_words)
-    sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)
+    key_value: Callable = word_counts.get
+    sorted_vocab: List[str] = sorted(word_counts, key=key_value, reverse=True)
 
     n_words: int = len(vocab_to_int)
     for i, word in enumerate(sorted_vocab):
@@ -197,7 +200,7 @@ def process_csv(csv_file: str) -> List[str]:
     Returns:
     - sentences (List[str]): sentences from the IMBD reviews.
     """
-    encoding: str = "utf-8"
+    encoding: TextIOWrapper = "utf-8"
     sentences: list = []
     with open(csv_file, "r", newline="", encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -293,9 +296,9 @@ def filter_sentence(sentences: List[str]) -> List[str]:
 def subsample_words(
     words: List[str],
     vocab_to_int: Dict[str, int],
-    correspondences: Dict[int, str],
+    correspondences: Dict[int, tuple[int, int]],
     threshold: float = 6e-1,
-) -> Tuple[List[int], Dict[str, float], Dict[int, str]]:
+) -> Tuple[List[int], Dict[str, float], Dict[int, tuple[int, int]]]:
     """
     Perform subsampling on a list of word integers using PyTorch, aiming to
     reduce the presence of frequent words according to Mikolov's subsampling
@@ -323,8 +326,8 @@ def subsample_words(
     in tokens and the index of the sentence that
     word belongs to.
     """
-    sampled_correspondences: Dict[int, str] = {}
-    aux_correspondences: Dict[int, str] = {}
+    sampled_correspondences: Dict[int, tuple[int, int]] = {}
+    aux_correspondences: Dict[int, tuple[int, int]] = {}
     int_words: List[int] = []
     new_words: List[str] = []
     aux_index: int = 0
@@ -401,7 +404,7 @@ def get_target(
     window_size: int,
     context_length: int,
     int_to_vocab,
-) -> List[str]:
+) -> List[int]:
     """
     Gets related words with the target word. Relationships include nearby
     words and dependent words.
@@ -417,42 +420,37 @@ def get_target(
     - window_size (int): the maximum window size for context words selection.
 
     Returns:
-    - target_words (List[str]): list of words selected as traget words.
+    - target_words (List[int]): list of words selected as target words.
     """
     frecuent_words: Set[str] = {"the", "to", "of", "a", "if"}
-    words_to_remove: Set[str] = {vocab_to_int[word] for word in frecuent_words}
+    words_to_remove: Set[int] = {vocab_to_int[word] for word in frecuent_words}
     probability: float = 0.85
-    target_words: Set[str] = set()
+    target_words: Set[int] = set()
 
     neighbours: List[str] = get_neighbours(dependency_tree, word_idx, idx)
     for neighbour in neighbours:
-        neighbour: str = re.sub(r"[^a-zA-Z]", "", neighbour)
+        neighbour = re.sub(r"[^a-zA-Z]", "", neighbour)
         if neighbour in vocab_to_int:
             target_words.add(vocab_to_int[neighbour])
 
     n_words: int = len(words)
-    window_size: int = random.randint(1, window_size)
-    target_words_print = []
+    window_size = random.randint(1, window_size)
 
     for i in range(1, window_size + 1):
         if idx - i >= 0:
             target_words.add(words[idx - i])
-            target_words_print.append(int_to_vocab[words[idx - i]])
         if idx + i < n_words:
             target_words.add(words[idx + i])
-            target_words_print.append(int_to_vocab[words[idx + i]])
 
-    target_words: List[int] = list(target_words)
+    new_target_words: list[int] = list(target_words)
     filtered_words: List[int] = []
 
-    for word in target_words:
+    for word in new_target_words:
         if word in words_to_remove:
             if random.random() > probability:
                 filtered_words.append(word)
         else:
             filtered_words.append(word)
-
-    # print("Nearby words", idx, target_words_print)
 
     while len(filtered_words) < context_length:
         filtered_words.append(vocab_to_int["padding"])
@@ -465,9 +463,9 @@ def get_target(
 class EmbeddingsDataset(Dataset):
     def __init__(
         self,
-        tokens: List[str],
+        tokens: List[int],
         sentences: List[str],
-        correspondences: Dict[int, str],
+        correspondences: Dict[int, tuple[int, int]],
         nlp: spacy.language.Language,
         vocab_to_int: Dict[str, int],
         int_to_vocab: Dict[int, str],
@@ -486,7 +484,7 @@ class EmbeddingsDataset(Dataset):
         """
         self.words: List[int] = tokens
         self.sentences: List[str] = sentences
-        self.correspondences: Dict[int, str] = correspondences
+        self.correspondences: Dict[int, tuple[int, int]] = correspondences
         self.vocab_to_int: Dict[str, int] = vocab_to_int
         self.int_to_vocab: Dict[int, str] = int_to_vocab
         self.window_size: int = window_size
@@ -509,10 +507,10 @@ class EmbeddingsDataset(Dataset):
             A tuple of context and target, both converted to integer representations.
         """
         word: int = self.words[idx]
-        # print(f"Word: {idx}", self.int_to_vocab[word])
-
+        
+        tree_idx: int
+        word_idx: int
         tree_idx, word_idx = self.correspondences[idx]
-        # print(f"Sentence: {idx}", self.sentences[tree_idx])
 
         if tree_idx not in self.trees:
             dependency_tree: spacy.tokens.doc.Doc = self.nlp(self.sentences[tree_idx])
@@ -532,10 +530,6 @@ class EmbeddingsDataset(Dataset):
         )
         input_tensor: torch.Tensor = torch.tensor([word] * len(new_targets))
 
-        # targets = [self.int_to_vocab[target] for target in new_targets]
-        # print("Targets:", idx, targets)
-        # print()
-
         targets_tensor: torch.Tensor = torch.tensor(new_targets)
 
         return input_tensor, targets_tensor
@@ -544,7 +538,7 @@ class EmbeddingsDataset(Dataset):
 def generate_data_loader(
     tokens: List[int],
     sentences: List[str],
-    correspondences: Dict[int, str],
+    correspondences: Dict[int, tuple[int, int]],
     batch_size: int,
     vocab_to_int: Dict[str, int],
     int_to_vocab: Dict[int, str],
@@ -599,7 +593,7 @@ def get_dependency_model() -> spacy.language.Language:
         nlp: spacy.language.Language = spacy.load(model_name)
     except Exception:
         subprocess.run(["python", "-m", "spacy", "download", model_name])
-        nlp: spacy.language.Language = spacy.load(model_name)
+        nlp = spacy.load(model_name)
     return nlp
 
 
