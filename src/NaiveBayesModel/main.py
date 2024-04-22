@@ -24,17 +24,11 @@ save_model = False
 
 
 def main() -> None:
-    # Load training data
-    trn_path: str
-    val_path: str
-    tst_path: str
-    trn_path, val_path, tst_path = download_data()
 
     # Load training data
-    trn_path: str
-    val_path: str
-    tst_path: str
-    trn_path, val_path, tst_path = download_data()
+    trn_path: str = "data_sst/trees/train.txt"
+    val_path: str = "data_sst/trees/dev.txt"
+    tst_path: str = "data_sst/trees/test.txt"
 
     trn_sentences: list[str]
     trn_labels: list[int]
