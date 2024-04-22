@@ -72,7 +72,8 @@ class Tree:
 
         Args:
         - tokens (List[str]): list of tokens to parse.
-        - parent (Optional[Node]): Node to start parsing,  if None, is the complete sentence.
+        - parent (Optional[Node]):
+            Node to start parsing,  if None, is the complete sentence.
 
         Returns:
         - node (Node): Node corresponding to the parent of the tree.

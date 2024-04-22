@@ -1,14 +1,12 @@
-from typing import List, Tuple, Dict
+import torch
+from src.treebank import Tree
+
 import os
 import requests
 import zipfile
-import torch
 from torch.utils.data import Dataset, DataLoader
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
-
-from src.treebank import Tree
-from src.RecursiveModel.utils import flatten
 
 
 def download_file(url: str, save_dir: str, filename: str) -> None:
@@ -63,7 +61,7 @@ def download_data() -> None:
     """
 
     # Define the URL, directory name, and file name
-    urls: List[str] = ["http://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"]
+    urls: list[str] = ["http://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"]
     path: str = "data_sst"
     name: str = path + "/sst.zip"
 
@@ -71,13 +69,13 @@ def download_data() -> None:
         os.makedirs(path)
 
         # Download the file
-        zip_path = download_file(urls[0], ".", name)
+        zip_path: str = download_file(urls[0], ".", name)
 
         # Extract the ZIP file
         extract_zip(zip_path, path)
 
 
-def load_trees(file: str) -> List[Tree]:
+def load_trees(file: str) -> list[Tree]:
     """
     Loads training trees. Maps leaf node words to word ids.
 
@@ -90,31 +88,34 @@ def load_trees(file: str) -> List[Tree]:
     filename: str = "data_sst/trees/" + file + ".txt"
     print(f"Loading {filename} trees...")
     with open(filename, "r", encoding="utf-8") as file:
-        trees: List[Tree] = [Tree(line) for line in file.readlines()]
+        trees: list[Tree] = [Tree(line) for line in file.readlines()]
 
     return trees
 
 
 class SSTDataset(Dataset):
-    def __init__(self, data: List[Tree], vocab_to_int: Dict[str, int]):
+    def __init__(self, data: list[Tree], vocab_to_int: dict[str, int]) -> None:
         """
         Initialize the dataset with the tree data and a vocabulary-to-integer mapping.
 
         Args:
-            tokens (List[str]): The list of preprocessed and tokenized words from the text data.
-            vocab_to_int (Dict[str, int]): A dictionary mapping words to integers.
-            context_size (int): The number of words to include in the context.
+            tokens (list[str]):
+                The list of preprocessed and tokenized words from the text data.
+            vocab_to_int (dict[str, int]):
+                A dictionary mapping words to integers.
+            context_size (int):
+                The number of words to include in the context.
         """
-        self.vocab_to_int: Dict[str, int] = vocab_to_int
-        self.data: List[Tuple[List[str], int]] = [
+        self.vocab_to_int: dict[str, int] = vocab_to_int
+        self.data: list[tuple[list[str], int]] = [
             (tree.get_words(), tree.labels[-1]) for tree in data
         ]
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of items in the dataset."""
         return len(self.data)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> tuple[torch.Tensor]:
         """
         Return a single item from the dataset.
 
@@ -125,33 +126,33 @@ class SSTDataset(Dataset):
             A tuple of context and target, both converted to integer representations.
         """
         sentence, target = self.data[idx]
-        sentence_tensor = torch.tensor(
+        sentence_tensor: torch.Tensor = torch.tensor(
             [
                 self.vocab_to_int[token]
                 for token in sentence
                 if token in self.vocab_to_int
             ]
         )
-        target_tensor = torch.tensor(target)
+        target_tensor: torch.Tensor = torch.tensor(target)
         return sentence_tensor, target_tensor.squeeze()
 
 
 def preprocess_data() -> (
-    Tuple[List[Tree], List[Tree], List[Tree], Dict[str, int], Dict[int, str]]
+    tuple[list[Tree], list[Tree], list[Tree], dict[str, int], dict[int, str]]
 ):
     # Load training, validation and test data
-    train_data: List[Tree] = load_trees("train")
-    val_data: List[Tree] = load_trees("dev")
-    test_data: List[Tree] = load_trees("test")
+    train_data: list[Tree] = load_trees("train")
+    val_data: list[Tree] = load_trees("dev")
+    test_data: list[Tree] = load_trees("test")
 
     # Create list with all the Trees
-    whole_data: List[Tree] = []
+    whole_data: list[Tree] = []
     whole_data.extend(train_data)
     whole_data.extend(val_data)
     whole_data.extend(test_data)
 
-    vocab_to_int: Dict[str, int]
-    int_to_vocab: Dict[int, str]
+    vocab_to_int: dict[str, int]
+    int_to_vocab: dict[int, str]
     vocab_to_int, int_to_vocab = create_lookup_tables(whole_data)
 
     return train_data, val_data, test_data, vocab_to_int, int_to_vocab
@@ -159,8 +160,13 @@ def preprocess_data() -> (
 
 def generate_dataloaders(
     batch_size=128, num_workers=4
-) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int]]:
+) -> tuple[DataLoader, DataLoader, DataLoader, dict[str, int]]:
 
+    train_data: list[Tree]
+    val_data: list[Tree]
+    test_data: list[Tree]
+    vocab_to_int: dict[str, int]
+    int_to_vocab: dict[int, str]
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
     train_dataset: Dataset = SSTDataset(train_data, vocab_to_int)
@@ -193,54 +199,66 @@ def generate_dataloaders(
         drop_last=True,
     )
 
-    return train_dataloader, val_dataloader, test_dataloader, vocab_to_int, int_to_vocab
+    return (
+        train_dataloader,
+        val_dataloader,
+        test_dataloader,
+        vocab_to_int,
+        int_to_vocab,
+        train_data,
+        val_data,
+        test_data,
+    )
 
 
-def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    words: List[str] = [word for tree in data for word in tree.get_words()]
+def create_lookup_tables(data: list[Tree]) -> tuple[dict[str, int], dict[int, str]]:
+    words: list[str] = [word for tree in data for word in tree.get_words()]
 
     word_counts: Counter = Counter(words)
-    sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)
+    sorted_vocab: list[int] = sorted(word_counts, key=word_counts.get, reverse=True)
 
-    int_to_vocab: Dict[int, str] = {i: word for i, word in enumerate(sorted_vocab)}
-    vocab_to_int: Dict[str, int] = {word: i for i, word in int_to_vocab.items()}
+    int_to_vocab: dict[int, str] = {i: word for i, word in enumerate(sorted_vocab)}
+    vocab_to_int: dict[str, int] = {word: i for i, word in int_to_vocab.items()}
     return vocab_to_int, int_to_vocab
 
 
 def collate_fn(
-    batch: List[Tuple[torch.Tensor, torch.Tensor]]
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    batch: list[tuple[torch.Tensor, torch.Tensor]]
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Prepares and returns a batch for training/testing in a torch model.
 
-    This function sorts the batch by the length of the text sequences in descending order,
-    tokenizes the text using a pre-defined word-to-index mapping, pads the sequences to have
-    uniform length, and converts labels to tensor.
+    This function sorts the batch by the length of the text sequences in descending
+    order, tokenizes the text using a pre-defined word-to-index mapping, pads the
+    sequences to have uniform length, and converts labels to tensor.
 
     Args:
-        batch (List[Tuple[List[str], int]]): A list of tuples, where each tuple contains a
-                                             list of words (representing a text) and an integer label.
+        batch (list[tuple[list[str], int]]):
+            A list of tuples, where each tuple contains a list of words (representing a
+            text) and an integer label.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing three elements:
+        tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            A tuple containing three elements:
             - texts_padded (torch.Tensor): A tensor of padded word indices of the text.
             - labels (torch.Tensor): A tensor of labels.
-            - lengths (torch.Tensor): A tensor representing the lengths of each text sequence.
+            - lengths (torch.Tensor): A tensor representing the lengths of each text
+              sequence.
     """
 
-    sorted_batch: List[Tuple[List[torch.Tensor, torch.Tensor]]] = reversed(
+    sorted_batch: list[tuple[list[torch.Tensor, torch.Tensor]]] = reversed(
         sorted(batch, key=lambda x: x[0].nelement())
     )
 
-    texts_indx: List[torch.Tensor] = []
-    labels: List[torch.Tensor] = []
+    texts_indx: list[torch.Tensor] = []
+    labels: list[torch.Tensor] = []
 
     for tensored_text, label in sorted_batch:
         if tensored_text.nelement() > 0:
             texts_indx.append(tensored_text)
             labels.append(label)
 
-    lengths: List[int] = [tensor_text.nelement() for tensor_text in texts_indx]
+    lengths: list[int] = [tensor_text.nelement() for tensor_text in texts_indx]
 
     lengths: torch.Tensor = torch.tensor(lengths)
 
@@ -251,23 +269,15 @@ def collate_fn(
     return texts_padded, labels, lengths
 
 
-def load_vocab(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    """
-    Create the word2index and index2word dictionary from the trees.
+def get_parsed_sentences(
+    trees: list[Tree], word2idx: dict[StopIteration, int]
+) -> tuple[list[torch.Tensor], list[int]]:
 
-    Args:
-    - data (List[Tree]): list of trees with the data.
+    sentences: list[torch.Tensor] = []
+    labels: list[int] = []
 
-    Returns:
-    word2index (Dict[str, int]): Convert word to a unique index
-    index2word (Dict[int, str]): Convert form index to string
-    """
-    vocab: List = list(set(flatten([t.get_words() for t in data])))
-    word2index: Dict[str, int] = {"<UNK>": 0}
-    for word in vocab:
-        if word not in word2index.keys():
-            word2index[word] = len(word2index)
+    for tree in trees:
+        sentences.append([word2idx(word) for word in tree.get_words()])
+        labels.append(tree.labels[-1])
 
-    index2word: Dict[int, str] = {v: k for k, v in word2index.items()}
-
-    return word2index, index2word
+    return (sentences, labels)
