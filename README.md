@@ -2,21 +2,21 @@
 
 
 ## Structure
-> data_sst (the folder is downloaded when executing)
-> models (created automatically when executing)
-  > RecurrentModel *
-  > RecursiveModel *
-> pretrained
+- data_sst (the folder is downloaded when executing)
+- models (created automatically when executing)
+  - RecurrentModel *
+  - RecursiveModel *
+- pretrained
   - skipgram_dep_model_updated.pth *
   - vocab_to_int.json
-> runs (created automatically)
-> src
-  > Embeddings
-  > Experiments (scope of negation experiments)
-  > NaiveBayesModel
-  > RecurrentModel
-  > RecursiveModel
-  > VecAvgModel
+- runs (created automatically)
+- src
+  - Embeddings
+  - Experiments (scope of negation experiments)
+  - NaiveBayesModel
+  - RecurrentModel
+  - RecursiveModel
+  - VecAvgModel
   - data.py
   - pretrained_embeddings.py
   - treebank.py
