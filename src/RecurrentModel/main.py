@@ -61,9 +61,9 @@ def main() -> None:
     name: str = "fri_1"
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
 
-    train_loader, val_loader, test_loader, vocab_to_int, _ = (
-            generate_dataloaders(batch_size=batch_size)
-        )
+    train_loader, val_loader, test_loader, vocab_to_int, _ = generate_dataloaders(
+        batch_size=batch_size
+    )
 
     # our own embeddings
     if our_embeddings:

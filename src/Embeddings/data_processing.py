@@ -365,12 +365,12 @@ def get_neighbours(tree: spacy.tokens.doc.Doc, idx: int, print_idx) -> List[str]
             try:
                 if token.head.head == target:
                     neighbours.add(token.text.lower())
-            except:
+            except Exception:
                 pass
             try:
                 if target.head.head == token:
                     neighbours.add(token.text.lower())
-            except:
+            except Exception:
                 pass
     # print("Neighbours", print_idx, neighbours)
     return list(neighbours)

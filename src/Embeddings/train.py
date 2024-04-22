@@ -41,7 +41,6 @@ def train_skipgram(
     n_samples: int = 3
     # Training loop
     for epoch in range(epochs):
-
         for input_words, target_words in dataloader:
             steps += 1
             # Convert inputs and context words into tensors
@@ -72,16 +71,14 @@ def train_skipgram(
                 )
                 _, closest_idxs = valid_similarities.topk(6)
 
-                valid_examples, closest_idxs = valid_examples.to(
+                valid_examples, closest_idxs = valid_examples.to("cpu"), closest_idxs.to(
                     "cpu"
-                ), closest_idxs.to("cpu")
+                )
                 for ii, valid_idx in enumerate(valid_examples):
                     closest_words = [
                         int_to_vocab[idx.item()] for idx in closest_idxs[ii]
                     ][1:]
                     print(
-                        int_to_vocab[valid_idx.item()]
-                        + " | "
-                        + ", ".join(closest_words)
+                        int_to_vocab[valid_idx.item()] + " | " + ", ".join(closest_words)
                     )
                 print("...\n")

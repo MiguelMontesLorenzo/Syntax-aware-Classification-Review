@@ -131,7 +131,6 @@ def t_step(
     accuracies: List[float] = []
 
     with torch.no_grad():
-
         for sentences, labels, text_len in test_data:
             sentences: torch.Tensor = sentences.to(device)
             labels: torch.Tensor = labels.to(device)

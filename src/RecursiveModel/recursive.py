@@ -19,7 +19,7 @@ class RNTN(nn.Module):
         output_size: int,
         simple_RNN: bool = False,
         device: str = "cpu",
-        pretrained_model: SkipGramNeg =None,
+        pretrained_model: SkipGramNeg = None,
     ) -> None:
         """
         Construct the recursive NN.
@@ -171,9 +171,7 @@ class RNTN(nn.Module):
         propagated: List = []
 
         for tree in trees:
-            recursive_tensor: Dict[Node, torch.Tensor] = self.tree_propagation(
-                tree.root
-            )
+            recursive_tensor: Dict[Node, torch.Tensor] = self.tree_propagation(tree.root)
             if root_only:
                 recursive_tensor_element: torch.Tensor = recursive_tensor[tree.root]
                 propagated.append(recursive_tensor_element)
@@ -185,8 +183,6 @@ class RNTN(nn.Module):
 
         propagated: torch.Tensor = torch.cat(propagated)
 
-        output: torch.Tensor = F.log_softmax(
-            torch.matmul(propagated, self.W_out), dim=1
-        )
+        output: torch.Tensor = F.log_softmax(torch.matmul(propagated, self.W_out), dim=1)
 
         return output

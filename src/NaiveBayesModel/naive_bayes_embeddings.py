@@ -85,7 +85,6 @@ class NaiveBayes:
         )
 
         for class_label in class_labels:
-
             # binary vector indicating which examples belong to considered class
             bin: torch.Tensor = torch.where(
                 labels == class_label,
@@ -120,9 +119,7 @@ class NaiveBayes:
             torch.Tensor: Log posterior probabilities for each class.
         """
         if self.conditional_probabilities is None or self.class_priors is None:
-            raise ValueError(
-                "Model must be trained before estimating class posteriors."
-            )
+            raise ValueError("Model must be trained before estimating class posteriors.")
 
         log_posteriors: torch.Tensor = torch.empty(size=self.labels.shape)
 
@@ -135,7 +132,6 @@ class NaiveBayes:
         }
 
         for i, class_label in enumerate(self.labels.tolist()):
-
             log_posteriors[class_label] = (
                 feature @ log_conds[class_label] + log_priors[class_label]
             )

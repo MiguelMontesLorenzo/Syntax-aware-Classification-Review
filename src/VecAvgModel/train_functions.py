@@ -39,7 +39,6 @@ def train_step(
 
     # Iterate over the training data
     for X_train, y_train, _ in train_data:
-
         # Move the data to the correct device
         X_train: torch.Tensor
         y_train: torch.Tensor
@@ -103,7 +102,6 @@ def val_step(
     # Iterate over the training data
     with torch.no_grad():
         for X_val, y_val, _ in val_data:
-
             # Move the data to the correct device
             X_val: torch.Tensor
             y_val: torch.Tensor
@@ -154,7 +152,6 @@ def test_step(
 
     # Iterate over the training data
     for X_test, y_test in test_data:
-
         # Move the data to the correct device
         X_test: torch.Tensor
         y_test: torch.Tensor

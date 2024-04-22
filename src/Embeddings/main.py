@@ -29,9 +29,13 @@ def main():
     json_file: str = "vocab_to_int.json"
 
     print("Step 1: Loading and preprocessing data...")
-    sentences, tokens, correspondences, vocab_to_int, int_to_vocab = (
-        load_and_preprocess_data(csv_file)
-    )
+    (
+        sentences,
+        tokens,
+        correspondences,
+        vocab_to_int,
+        int_to_vocab,
+    ) = load_and_preprocess_data(csv_file)
     print(f"Loaded and preprocessed {len(tokens)} tokens.")
     print(f"Created vocabulary with {len(vocab_to_int)} unique words.")
 

@@ -15,7 +15,6 @@ def remove_punctuations(input_col):
 # Tokenizes a input_string. Takes a input_string (a sentence), splits out punctuation
 # and contractions, and returns a list of strings, with each input_string being a token.
 def tokenize(input_string: str) -> list[str]:
-
     input_string = input_string.lower()
     input_string = input_string.strip()
 
@@ -98,7 +97,7 @@ def evaluate_classification(
     Returns:
         dict: A dictionary containing the calculated metrics.
     """
-    
+
     accuracy = torch.sum(predictions == labels) / len(labels)
     metrics = {
         "accuracy": accuracy.item(),
@@ -118,6 +117,7 @@ def randomize_indices(N: int) -> np.ndarray:
 
     return shuffled_indices
 
+
 def list_random_shuffle(input_list: list[int]) -> torch.Tensor:
     """
     Randomly shuffles the rows of a 2D tensor.
@@ -129,5 +129,3 @@ def list_random_shuffle(input_list: list[int]) -> torch.Tensor:
     shuffled_list = array.tolist()
 
     return shuffled_list
-
-

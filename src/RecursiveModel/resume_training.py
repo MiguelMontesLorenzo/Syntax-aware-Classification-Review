@@ -55,9 +55,7 @@ def main(start_epoch: int = 0) -> None:
     word2index, _ = load_vocab(train_data)
 
     # define name and writer
-    name: str = (
-        f"model_lr_{lr}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}_simple_{simple_RNN}"
-    )
+    name: str = f"model_lr_{lr}_hs_{hidden_size}_bs_{batch_size}_e_{epochs}_ss_{step_size}_g{gamma}_simple_{simple_RNN}"
     writer: SummaryWriter = SummaryWriter(f"runs/{name}")
 
     print(device)

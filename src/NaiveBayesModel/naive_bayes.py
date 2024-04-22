@@ -52,8 +52,10 @@ class NaiveBayes:
             estimated prior probabilities.
         """
 
-        class_priors = {label: torch.tensor([count]) 
-            for label, count in Counter(labels.tolist()).items()}
+        class_priors = {
+            label: torch.tensor([count])
+            for label, count in Counter(labels.tolist()).items()
+        }
 
         return class_priors
 
@@ -88,11 +90,11 @@ class NaiveBayes:
 
         class_labels: list = labels.unique().tolist()
         smoothed_vocabulary_word_frecuencies: torch.Tensor = (
-            torch.sum(features, dim=0) + features.shape[1] * delta#labels.shape[0] * delta
+            torch.sum(features, dim=0)
+            + features.shape[1] * delta  # labels.shape[0] * delta
         )
 
         for class_label in class_labels:
-
             # Compute: (count(w,c) + delta)
 
             # genereate a binary vector indicating the belonging (or not) of each
@@ -148,9 +150,7 @@ class NaiveBayes:
             torch.Tensor: Log posterior probabilities for each class.
         """
         if self.conditional_probabilities is None or self.class_priors is None:
-            raise ValueError(
-                "Model must be trained before estimating class posteriors."
-            )
+            raise ValueError("Model must be trained before estimating class posteriors.")
 
         log_posteriors: torch.Tensor = torch.zeros_like(input=(self.unique_labels))
 

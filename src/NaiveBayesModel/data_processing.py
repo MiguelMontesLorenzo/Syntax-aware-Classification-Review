@@ -11,16 +11,15 @@ from src.NaiveBayesModel.utils import tokenize
 
 
 def load_sentences(infile: str) -> tuple[list[str], list[int]]:
-
     """
     Loads standford dataset sentences (and labels) without the tree structure.
 
     Args:
-        infile (str): 
+        infile (str):
             Path to the file with the sentences to load.
 
     Returns:
-        (tuple[list[str], list[int]]): 
+        (tuple[list[str], list[int]]):
             A tuple of lists containing the sentences and their corresponding labels.
     """
 
@@ -64,7 +63,9 @@ def build_vocab(sentences: str) -> tuple[dict[str, int], dict[int, str]]:
     return (wrd2idx, idx2wrd)
 
 
-def bag_of_words(text: list[str], vocab: dict[str, int], binary: bool = False) -> torch.Tensor:
+def bag_of_words(
+    text: list[str], vocab: dict[str, int], binary: bool = False
+) -> torch.Tensor:
     """
     Converts a list of words into a bag-of-words vector based on the provided
     vocabulary.

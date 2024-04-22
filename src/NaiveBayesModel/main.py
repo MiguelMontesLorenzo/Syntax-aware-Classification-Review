@@ -2,7 +2,11 @@ import os
 import torch
 
 from src.data import download_data
-from src.NaiveBayesModel.data_processing import load_sentences, build_vocab, bag_of_words
+from src.NaiveBayesModel.data_processing import (
+    load_sentences,
+    build_vocab,
+    bag_of_words,
+)
 from src.NaiveBayesModel.utils import evaluate_classification
 from src.NaiveBayesModel.naive_bayes import NaiveBayes
 from src.NaiveBayesModel.serial_naive_bayes import SerialNaiveBayes
@@ -20,7 +24,6 @@ save_model = False
 
 
 def main() -> None:
-
     # Load training data
     trn_path: str
     val_path: str
@@ -57,7 +60,6 @@ def main() -> None:
     # Build vocabulary
     sentences = trn_sentences + tst_sentences
 
-
     print("Building vocabulary...")
     wrd2idx: dict[str, int]
     wrd2idx, _ = build_vocab(sentences)
@@ -65,18 +67,18 @@ def main() -> None:
     # Prepare features and labels for the models
     print("Preparing training BoW...")
     print(f"Total sentences: {len(trn_sentences)}")
-    processed_trn_features: list[torch.Tensor] = \
-        [bag_of_words(sentence, wrd2idx) for sentence in trn_sentences]
+    processed_trn_features: list[torch.Tensor] = [
+        bag_of_words(sentence, wrd2idx) for sentence in trn_sentences
+    ]
 
     # Prepare features and labels for the models
     print("Preparing testing BoW...")
     print(f"Total sentences: {len(tst_sentences)}")
-    processed_tst_features: list[torch.Tensor] = \
-        [bag_of_words(sentence, wrd2idx) for sentence in tst_sentences]
-        
+    processed_tst_features: list[torch.Tensor] = [
+        bag_of_words(sentence, wrd2idx) for sentence in tst_sentences
+    ]
 
     if modality == "VECTOR-WISE":
-
         # Convert the list of features to a tensor
         trn_features = torch.stack(processed_trn_features)
         trn_labels: torch.Tensor = torch.tensor(trn_labels, dtype=torch.int)
@@ -95,9 +97,7 @@ def main() -> None:
         )
         print("Naive Bayes Metrics:", nb_metrics)
 
-
     if modality == "SERIAL":
-
         # Convert the list of features to a tensor
         trn_labels: torch.Tensor = torch.tensor(trn_labels, dtype=torch.int)
         tst_labels: torch.Tensor = torch.tensor(tst_labels, dtype=torch.int)
@@ -116,8 +116,9 @@ def main() -> None:
 
         # Evaluate Naive Bayes model
         print("Evaluating Naive Bayes model...")
-        nb_predictions: list[int] = \
-            [nb_model.predict(ex) for ex in processed_tst_features]
+        nb_predictions: list[int] = [
+            nb_model.predict(ex) for ex in processed_tst_features
+        ]
         nb_metrics: torch.Dict[str, float] = evaluate_classification(
             torch.tensor(nb_predictions), tst_labels
         )

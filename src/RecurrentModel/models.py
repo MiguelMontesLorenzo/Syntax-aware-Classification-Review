@@ -57,9 +57,9 @@ class RNN(nn.Module):
             self.our_embeddings: bool = True
 
         else:
-            self.embedding: nn.Embedding = nn.Embedding(len(word2index), embedding_dim).to(
-                device
-            )
+            self.embedding: nn.Embedding = nn.Embedding(
+                len(word2index), embedding_dim
+            ).to(device)
             self.our_embeddings: bool = False
 
         self.embedding_dim: int = embedding_dim
