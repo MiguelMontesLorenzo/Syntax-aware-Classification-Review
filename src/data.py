@@ -101,7 +101,8 @@ class SSTDataset(Dataset):
         Initialize the dataset with the tree data and a vocabulary-to-integer mapping.
 
         Args:
-            tokens (List[str]): The list of preprocessed and tokenized words from the text data.
+            tokens (List[str]): The list of preprocessed and tokenized words from
+            the text data.
             vocab_to_int (Dict[str, int]): A dictionary mapping words to integers.
             context_size (int): The number of words to include in the context.
         """
@@ -212,19 +213,25 @@ def collate_fn(
     """
     Prepares and returns a batch for training/testing in a torch model.
 
-    This function sorts the batch by the length of the text sequences in descending order,
-    tokenizes the text using a pre-defined word-to-index mapping, pads the sequences to have
+    This function sorts the batch by the length of the text sequences in
+    descending order,
+    tokenizes the text using a pre-defined word-to-index mapping, pads the
+    sequences to have
     uniform length, and converts labels to tensor.
 
     Args:
-        batch (List[Tuple[List[str], int]]): A list of tuples, where each tuple contains a
-                                             list of words (representing a text) and an integer label.
+        batch (List[Tuple[List[str], int]]): A list of tuples, where each
+        tuple contains a list of words (representing a text) and an integer
+        label.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing three elements:
-            - texts_padded (torch.Tensor): A tensor of padded word indices of the text.
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing
+        three elements:
+            - texts_padded (torch.Tensor): A tensor of padded word indices of
+            the text.
             - labels (torch.Tensor): A tensor of labels.
-            - lengths (torch.Tensor): A tensor representing the lengths of each text sequence.
+            - lengths (torch.Tensor): A tensor representing the lengths of
+            each text sequence.
     """
 
     sorted_batch: List[Tuple[List[torch.Tensor, torch.Tensor]]] = reversed(
