@@ -49,7 +49,7 @@ def accuracy(predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 
 def load_pretrained_weights(
     pretrained_weights_path, big_vocab_to_int, vocab_to_int
-) -> torch.Tensor:
+) -> torch.nn.Embedding:
     state_dict = torch.load(pretrained_weights_path, map_location=torch.device("cpu"))[
         "in_embed.weight"
     ]
@@ -60,6 +60,5 @@ def load_pretrained_weights(
     indices: List[int] = [previous_vocab_to_int[key] for key in vocab_to_int.keys()]
 
     embeddings: torch.nn.Embedding = state_dict[indices]
-    weights: torch.Tensor = embeddings
 
-    return weights
+    return embeddings

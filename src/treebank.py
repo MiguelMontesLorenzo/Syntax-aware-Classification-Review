@@ -15,7 +15,7 @@ class Node:
         - None
         """
         self.label: int = label
-        self.word: str = word
+        self.word: Optional[str] = word
         self.parent: Optional[Node] = parent
         self.left: Optional[Node] = None
         self.right: Optional[Node] = None

@@ -24,7 +24,7 @@ class SkipGramNeg(nn.Module):
         super().__init__()
         self.vocab_size: int = vocab_size
         self.embed_dim: int = embed_dim
-        self.noise_dist: torch.Tensor = noise_dist
+        self.noise_dist: Optional[torch.Tensor] = noise_dist
 
         # Define embedding layers for input and output words
         self.in_embed: nn.Embedding = nn.Embedding(self.vocab_size, self.embed_dim)
