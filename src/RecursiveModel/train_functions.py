@@ -43,19 +43,19 @@ def train(
 
     for _, batch in enumerate(get_batch(batch_size, train_data)):
         if root_only:
-            labels_list: List[int] = [tree.labels[-1] for tree in batch]
-            labels: torch.autograd.Variable = torch.autograd.Variable(
+            labels_list = [tree.labels[-1] for tree in batch]
+            labels = torch.autograd.Variable(
                 torch.tensor(labels_list, dtype=torch.long, device=device)
             )
 
         else:
-            labels_list: List[int] = [tree.labels for tree in batch]
-            labels: torch.autograd.Variable = torch.autograd.Variable(
+            labels_list = [tree.labels for tree in batch]
+            labels = torch.autograd.Variable(
                 torch.tensor(flatten(labels_list), dtype=torch.long, device=device)
             )
 
         output: torch.Tensor = model(batch, root_only)
-        loss: float = loss_function(output, labels)
+        loss: torch.Tensor = loss_function(output, labels)
 
         optimizer.zero_grad()
         loss.backward()
@@ -64,11 +64,11 @@ def train(
 
         losses.append(loss.item())
 
-        accuracy_value: float = accuracy(output, labels)
+        accuracy_value: torch.Tensor = accuracy(output, labels)
 
-        accuracies.append(accuracy_value)
+        accuracies.append(accuracy_value.item())
 
-    acc: float = torch.mean(torch.tensor(accuracies))
+    acc: float = torch.mean(torch.tensor(accuracies)).item()
 
     # Log training loss to TensorBoard
     writer.add_scalar("train/loss", np.mean(losses), epoch)
@@ -108,29 +108,29 @@ def val(
     with torch.no_grad():
         for _, batch in enumerate(get_batch(batch_size, val_data)):
             if root_only:
-                labels_list: List[int] = [tree.labels[-1] for tree in batch]
-                labels: torch.autograd.Variable = torch.autograd.Variable(
+                labels_list = [tree.labels[-1] for tree in batch]
+                labels = torch.autograd.Variable(
                     torch.tensor(labels_list, dtype=torch.long, device=device)
                 )
 
             else:
-                labels_list: List[int] = [tree.labels for tree in batch]
-                labels: torch.autograd.Variable = torch.autograd.Variable(
+                labels_list = [tree.labels for tree in batch]
+                labels = torch.autograd.Variable(
                     torch.tensor(flatten(labels_list), dtype=torch.long, device=device)
                 )
 
             # compute outputs and loss
             output: torch.Tensor = model(batch, root_only)
-            loss_value: float = loss_function(output, labels.long())
+            loss_value: torch.Tensor = loss_function(output, labels.long())
 
             # add metrics to vectors
             losses.append(loss_value.item())
 
-            accuracy_value: float = accuracy(output, labels)
+            accuracy_value: torch.Tensor = accuracy(output, labels)
 
-            accuracies.append(accuracy_value)
+            accuracies.append(accuracy_value.item())
 
-        acc: float = torch.mean(torch.tensor(accuracies))
+        acc: float = torch.mean(torch.tensor(accuracies)).item()
 
         # write on tensorboard
         writer.add_scalar("val/loss", np.mean(losses), epoch)
@@ -165,23 +165,23 @@ def test(
     with torch.no_grad():
         for _, batch in enumerate(get_batch(batch_size, test_data)):
             if root_only:
-                labels_list: List[int] = [tree.labels[-1] for tree in batch]
-                labels: torch.autograd.Variable = torch.autograd.Variable(
+                labels_list = [tree.labels[-1] for tree in batch]
+                labels = torch.autograd.Variable(
                     torch.tensor(labels_list, dtype=torch.long, device=device)
                 )
             else:
-                labels_list: List[int] = [tree.labels for tree in batch]
-                labels: torch.autograd.Variable = torch.autograd.Variable(
+                labels_list = [tree.labels for tree in batch]
+                labels = torch.autograd.Variable(
                     torch.tensor(flatten(labels_list), dtype=torch.long, device=device)
                 )
 
             # compute outputs and loss
             outputs = model(batch, root_only).to(device)
 
-            accuracy_value: float = accuracy(outputs, labels)
+            accuracy_value: float = accuracy(outputs, labels).item()
 
             accuracies.append(accuracy_value)
 
-    acc: float = torch.mean(torch.tensor(accuracies))
+    acc: float = torch.mean(torch.tensor(accuracies)).item()
 
     return acc

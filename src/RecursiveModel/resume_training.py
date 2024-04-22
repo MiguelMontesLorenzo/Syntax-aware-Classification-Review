@@ -1,5 +1,6 @@
 from typing import List, Dict
 import torch
+import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import StepLR
@@ -77,30 +78,30 @@ def main(start_epoch: int = 0) -> None:
         )
         pretrained_dict_path: str = os.path.join(pretrained_folder, big_vocab_to_int)
 
-        weights: torch.Tensor = load_pretrained_weights(
+        weights: nn.Embedding = load_pretrained_weights(
             pretrained_weights_path, pretrained_dict_path, vocab_to_int
         )
 
         pretrained_model.load_pretrained_embeddings(weights)
 
         # Define model
-        model: RNTN = RNTN(
+        model = RNTN(
             word2index=word2index,
             hidden_size=hidden_size,
             output_size=output_size,
             simple_RNN=simple_RNN,
-            device=device,
+            device=str(device),
             pretrained_model=pretrained_model,
         ).to(device)
 
     else:
         # Define model
-        model: RNTN = RNTN(
+        model = RNTN(
             word2index=word2index,
             hidden_size=hidden_size,
             output_size=output_size,
             simple_RNN=simple_RNN,
-            device=device,
+            device=str(device),
         ).to(device)
 
     if start_epoch > 0:

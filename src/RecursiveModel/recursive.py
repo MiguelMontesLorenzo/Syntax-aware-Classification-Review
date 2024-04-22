@@ -36,14 +36,12 @@ class RNTN(nn.Module):
         self.word2index: Dict[str, int] = word2index
 
         if pretrained_model:
-            self.embed: nn.Embedding = pretrained_model.in_embed
-            self.initialize_embeddings: bool = False
+            self.embed = pretrained_model.in_embed
+            self.initialize_embeddings = False
 
         else:
-            self.embed: nn.Embedding = nn.Embedding(len(word2index), hidden_size).to(
-                device
-            )
-            self.initialize_embeddings: bool = True
+            self.embed = nn.Embedding(len(word2index), hidden_size).to(device)
+            self.initialize_embeddings = True
 
         self.V: nn.ParameterList = nn.ParameterList(
             [
@@ -131,7 +129,7 @@ class RNTN(nn.Module):
             Wx: torch.Tensor = torch.matmul(children_stack, self.W)
 
             if self.simple_RNN:
-                current_vector: torch.Tensor = F.tanh(Wx + self.b)
+                current_vector = F.tanh(Wx + self.b)
 
             else:
                 # h: List = []
@@ -151,7 +149,7 @@ class RNTN(nn.Module):
                 ]
                 h_tensor: torch.Tensor = torch.cat(h, 1)
 
-                current_vector: torch.Tensor = F.tanh(h_tensor + Wx + self.b)
+                current_vector = F.tanh(h_tensor + Wx + self.b)
 
         recursive_tensor[node] = current_vector
 
@@ -182,10 +180,10 @@ class RNTN(nn.Module):
                 ]
                 propagated.extend(recursive_tensor_list)
 
-        propagated: torch.Tensor = torch.cat(propagated)
+        propagated_torch: torch.Tensor = torch.cat(propagated)
 
         output: torch.Tensor = F.log_softmax(
-            torch.matmul(propagated, self.W_out), dim=1
+            torch.matmul(propagated_torch, self.W_out), dim=1
         )
 
         return output
