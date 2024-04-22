@@ -17,7 +17,7 @@ DATA_PATH: Final[str] = "data"
 NUM_CLASSES: Final[int] = 10
 
 # set device
-device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
 def main() -> None:
@@ -28,18 +28,15 @@ def main() -> None:
     batch_size: int = 128
 
     # load data
-    test_loader: DataLoader
-    vocab_to_int: dict[str, int]
-    test_data: list[Tree]
+    # test_loader: DataLoader
+    # vocab_to_int: dict[str, int]
+    test_data: DataLoader
     (
         _,
         _,
-        test_loader,
-        vocab_to_int,
-        _,
-        _,
-        _,
         test_data,
+        _,
+        _,
     ) = generate_dataloaders(batch_size=batch_size)
 
     # define name and writer
@@ -54,7 +51,7 @@ def main() -> None:
     # model.weighter.set_constants(constants)
 
     # call test step and evaluate accuracy
-    weighter: Weighter = UniformWeighter
+    weighter: UniformWeighter = UniformWeighter
     accuracy: float = test_step(model, test_data, device, weighter)
     print(f"accuracy: {accuracy}")
 

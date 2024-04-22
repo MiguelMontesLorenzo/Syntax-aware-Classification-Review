@@ -38,21 +38,21 @@ def train_step(
     model.train()
 
     # Iterate over the training data
-    for X_train, y_train, _ in train_data:
+    for X_train_batch, y_train_batch, _ in train_data:
         # Move the data to the correct device
         X_train: torch.Tensor
         y_train: torch.Tensor
-        X_train, y_train = X_train.to(device), y_train.to(device)
+        X_train, y_train = X_train_batch.to(device), y_train_batch.to(device)
 
         # Flatten the input tensor
-        X_train: torch.Tensor = X_train.view(X_train.size(0), -1)
+        X_train_flatten: torch.Tensor = X_train.view(X_train.size(0), -1)
 
         # 1. Produce predictions
-        y_pred: torch.Tensor = model(X_train, weigther)
+        y_pred: torch.Tensor = model(X_train_flatten, weigther)
 
         # 2. Compute loss
         batch_loss: float = loss(y_pred, y_train)
-        losses.append(batch_loss.item())
+        losses.append(batch_loss)
 
         # 3. Compute accuracy
         acc: torch.Tensor = accuracy(y_pred, y_train)
@@ -101,21 +101,21 @@ def val_step(
 
     # Iterate over the training data
     with torch.no_grad():
-        for X_val, y_val, _ in val_data:
+        for X_val_batch, y_val_batch, _ in val_data:
             # Move the data to the correct device
             X_val: torch.Tensor
             y_val: torch.Tensor
-            X_val, y_val = X_val.to(device), y_val.to(device)
+            X_val, y_val = X_val_batch.to(device), y_val_batch.to(device)
 
             # Flatten the input tensor
-            X_val: torch.Tensor = X_val.view(X_val.size(0), -1)
+            X_val_flatten: torch.Tensor = X_val.view(X_val.size(0), -1)
 
             # 1. Produce predictions
-            y_pred: torch.Tensor = model(X_val, weighter)
+            y_pred: torch.Tensor = model(X_val_flatten, weighter)
 
             # 2. Compute loss
             batch_loss: float = loss(y_pred, y_val)
-            losses.append(batch_loss.item())
+            losses.append(batch_loss)
 
             # 3. Compute accuracy
             acc: torch.Tensor = accuracy(y_pred, y_val)
@@ -151,17 +151,17 @@ def test_step(
     model.eval()
 
     # Iterate over the training data
-    for X_test, y_test in test_data:
+    for X_test_batch, y_test_batch in test_data:
         # Move the data to the correct device
         X_test: torch.Tensor
         y_test: torch.Tensor
-        X_test, y_test = X_test.to(device), y_test.to(device)
+        X_test, y_test = X_test_batch.to(device), y_test_batch.to(device)
 
         # Flatten the input tensor
-        X_test: torch.Tensor = X_test.view(X_test.size(0), -1)
+        X_test_flatten: torch.Tensor = X_test.view(X_test.size(0), -1)
 
         # 1. Produce predictions
-        y_pred: torch.Tensor = model(X_test, weighter)
+        y_pred: torch.Tensor = model(X_test_flatten, weighter)
 
         # 2. Compute accuracy
         acc: torch.Tensor = accuracy(y_pred, y_test)

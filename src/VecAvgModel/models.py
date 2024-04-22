@@ -79,7 +79,7 @@ class VecAvg(torch.nn.Module):
         super().__init__()
 
         # define embeddings
-        self.embeddings: torch.Tensor = pretrained_model.in_embed
+        self.embeddings: torch.nn.Embedding = pretrained_model.in_embed
 
         layers: list = []
         layer_sizes: list = [input_size, *hidden_sizes, output_size]
