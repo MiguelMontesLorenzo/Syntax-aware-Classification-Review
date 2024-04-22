@@ -8,9 +8,9 @@ class NaiveBayes:
         """
         Initializes the Naive Bayes classifier
         """
-        self.class_priors: Dict[int, torch.Tensor] = None
-        self.conditional_probabilities: Dict[int, torch.Tensor] = None
-        self.vocab_size: int = None
+        self.class_priors: Dict[int, torch.Tensor] = {}
+        self.conditional_probabilities: Dict[int, torch.Tensor] = {}
+        self.vocab_size: int = 0
         self.labels: torch.Tensor
 
     def fit(
@@ -169,7 +169,7 @@ class NaiveBayes:
 
         return log_posteriors
 
-    def predict(self, feature: torch.Tensor) -> int:
+    def predict(self, feature: torch.Tensor) -> float:
         """
         Classifies a new feature using the trained Naive Bayes classifier.
 
@@ -187,7 +187,7 @@ class NaiveBayes:
             raise Exception("Model not trained. Please call the train method first.")
 
         log_posteriors: torch.Tensor = self.estimate_class_posteriors(feature)
-        pred: int = torch.argmax(log_posteriors).item()
+        pred: float = torch.argmax(log_posteriors).item()
 
         return pred
 

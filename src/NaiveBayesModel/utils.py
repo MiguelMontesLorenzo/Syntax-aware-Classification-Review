@@ -112,8 +112,8 @@ def randomize_indices(N: int) -> np.ndarray:
 
     """
 
-    indices = np.arange(N)
-    shuffled_indices = np.random.permutation(indices)
+    indices: np.ndarray = np.arange(N)
+    shuffled_indices: np.ndarray = np.random.permutation(indices)
 
     return shuffled_indices
 
@@ -124,8 +124,8 @@ def list_random_shuffle(input_list: list[int]) -> list[int]:
 
     """
     array: np.ndarray = np.array(input_list)
-    random_indices: np.ndarray = randomize_indices(array.shape())
-    array: np.ndarray = array[random_indices]
+    random_indices: np.ndarray = randomize_indices(array.shape[0])
+    array = array[random_indices]
     shuffled_list: list[int] = array.tolist()
 
     return shuffled_list
