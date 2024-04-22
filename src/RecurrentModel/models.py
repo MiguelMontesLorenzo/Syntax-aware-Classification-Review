@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 import torch
 from torch import nn
 
@@ -42,7 +42,7 @@ class RNN(nn.Module):
         num_layers: int = 1,
         bidirectional: bool = True,
         device: str = "cpu",
-        pretrained_model: SkipGramNeg = None,
+        pretrained_model: Optional[SkipGramNeg] = None,
     ) -> None:
         """
         Initializes the RNN model with given embedding weights,
@@ -60,14 +60,12 @@ class RNN(nn.Module):
 
         super().__init__()
         if pretrained_model:
-            self.embedding: torch.Tensor = pretrained_model.in_embed
+            self.embedding = pretrained_model.in_embed
             self.our_embeddings: bool = True
 
         else:
-            self.embedding: nn.Embedding = nn.Embedding(
-                len(word2index), embedding_dim
-            ).to(device)
-            self.our_embeddings: bool = False
+            self.embedding = nn.Embedding(len(word2index), embedding_dim).to(device)
+            self.our_embeddings = False
 
         self.embedding_dim: int = embedding_dim
         self.bidirectional: bool = bidirectional
@@ -106,7 +104,7 @@ class RNN(nn.Module):
 
         packed_output, (hidden, cell) = self.rnn(packed_embedded)
 
-        hidden: torch.Tensor = hidden[-1]
+        hidden = hidden[-1]
 
         outputs: torch.Tensor = self.fc(hidden).squeeze()
         return outputs

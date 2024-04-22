@@ -39,8 +39,8 @@ def train_step(
     model.train()
 
     for sentences, labels, text_len in train_data:
-        sentences: torch.Tensor = sentences.to(device)
-        labels: torch.Tensor = labels.to(device)
+        sentences = sentences.to(device)
+        labels = labels.to(device)
 
         outputs: torch.Tensor = model(sentences, text_len)
 
@@ -94,8 +94,8 @@ def val_step(
         accuracies: List[float] = []
 
         for sentences, labels, text_len in val_data:
-            sentences: torch.Tensor = sentences.to(device)
-            labels: torch.Tensor = labels.to(device)
+            sentences = sentences.to(device)
+            labels = labels.to(device)
 
             outputs: torch.Tensor = model(sentences, text_len)
 
@@ -132,8 +132,8 @@ def t_step(
 
     with torch.no_grad():
         for sentences, labels, text_len in test_data:
-            sentences: torch.Tensor = sentences.to(device)
-            labels: torch.Tensor = labels.to(device)
+            sentence = sentences.to(device)
+            labels = labels.to(device)
 
             outputs: torch.Tensor = model(sentences, text_len)
 

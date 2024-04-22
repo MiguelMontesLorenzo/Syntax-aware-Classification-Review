@@ -1,5 +1,6 @@
 from typing import List, Dict
 import torch
+import torch.nn as nn
 import os
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
@@ -78,7 +79,7 @@ def main() -> None:
         )
         pretrained_dict_path: str = os.path.join(pretrained_folder, big_vocab_to_int)
 
-        weights: torch.Tensor = load_pretrained_weights(
+        weights: nn.Embedding = load_pretrained_weights(
             pretrained_weights_path, pretrained_dict_path, vocab_to_int
         )
 
@@ -96,13 +97,13 @@ def main() -> None:
             num_classes=NUM_CLASSES,
             num_layers=1,
             bidirectional=True,
-            device=device,
+            device=str(device),
             pretrained_model=pretrained_model,
         ).to(device)
 
     else:
         # Define model
-        model: RNN = RNN(
+        model = RNN(
             word2index=vocab_to_int,
             embedding_dim=embedding_dim,
             hidden_dim=hidden_size,
