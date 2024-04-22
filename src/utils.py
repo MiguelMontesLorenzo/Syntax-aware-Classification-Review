@@ -18,8 +18,13 @@ def save_model(model: torch.nn.Module, name: str) -> None:
     if not os.path.isdir("models"):
         os.makedirs("models")
 
+    if not os.path.isdir(f"models/{name}"):
+        os.makedirs(f"models/{name}")
+
     # save scripted model
-    torch.save(model, f"models/{name}.pt")
+    torch.save(model, f"models/{name}/{name}.pt")
+
+    return None
 
 
 def accuracy(predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -27,16 +32,16 @@ def accuracy(predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     This function computes the accuracy.
 
     Args:
-    - predictions (torch.Tensor): predictions tensor. Dimensions: [batch, num classes] or [batch].
-    - targets (torch.Tensor): targets tensor. Dimensions: [batch, 1] or [batch].
+    - predictions (torch.Tensor):
+        predictions tensor. Dimensions: [batch, num classes] or [batch].
+    - targets (torch.Tensor):
+        targets tensor. Dimensions: [batch, 1] or [batch].
 
     Returns:
     - accuracy_measure: the accuracy in a tensor of a single element.
     """
     maximums: torch.Tensor = torch.argmax(predictions, dim=1)
-
-    correct_predictions: torch.Tensor = torch.sum(maximums == targets)
-
+    correct_predictions: torch.Tensor = torch.sum(torch.isclose(maximums, targets))
     accuracy_measure: torch.Tensor = correct_predictions / len(targets)
 
     return accuracy_measure
