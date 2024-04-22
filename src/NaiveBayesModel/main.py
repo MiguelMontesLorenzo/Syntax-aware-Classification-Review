@@ -1,11 +1,11 @@
 import os
 import torch
 
-from src.data_processing import \
-    download_data, load_sentences, build_vocab, bag_of_words, save_bows, load_bows
-from src.utils import evaluate_classification, list_random_shuffle
-from src.naive_bayes import NaiveBayes
-from src.serial_naive_bayes import SerialNaiveBayes
+from src.data import download_data
+from src.NaiveBayesModel.data_processing import load_sentences, build_vocab, bag_of_words
+from src.NaiveBayesModel.utils import evaluate_classification
+from src.NaiveBayesModel.naive_bayes import NaiveBayes
+from src.NaiveBayesModel.serial_naive_bayes import SerialNaiveBayes
 
 
 # modality = "VECTOR-WISE"

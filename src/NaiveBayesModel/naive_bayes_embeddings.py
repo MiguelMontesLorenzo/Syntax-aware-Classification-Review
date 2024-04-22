@@ -1,14 +1,5 @@
 import torch
-
-# from collections import Counter
 from typing import Dict
-
-# try:
-#     from src.utils import SentimentExample
-#     from src.data_processing import bag_of_words
-# except ImportError:
-#     from utils import SentimentExample
-#     from data_processing import bag_of_words
 
 
 class NaiveBayes:
