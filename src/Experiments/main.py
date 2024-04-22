@@ -4,12 +4,13 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.data import download_data, load_trees
+from src.data import download_data, load_trees, generate_dataloaders
 from src.treebank import Tree
 from src.RecursiveModel.recursive import RNTN
 from src.RecurrentModel.models import RNN
 from src.RecursiveModel.utils import set_seed
 from src.Experiments.utils import read_indices, count_correct
+from torch.utils.data import DataLoader
 
 set_seed(42)
 
@@ -31,8 +32,7 @@ def main() -> None:
     name_recursive: str = "RecNN_55.26"
     name_RTNT: str = "RTNT_58.19"
     name_recursive_2: str = "RecNN_63.03_embeddings_propios"
-    name_RNN: str = "RNN_33_embeddings_torch"
-    name_RNN_2: str = "RNN_31.06_embeddings_propios"
+    name_RTNT_2: str = "RNTN_62.52_embeddings_propios"
 
     # Load all models models
     model_simple: RNTN = torch.load(
@@ -55,19 +55,11 @@ def main() -> None:
     model_RTNT.device = device
     model_RTNT.to(device)
 
-    ##
-    # model_RNN: RNN = torch.load(
-    #     f"models/{name_RNN}.pt", map_location=torch.device("cpu")
-    # )
-    # model_RNN.device = device
-    # model_RNN.to(device)
-
-    # ##
-    # model_RNN_2: RNN = torch.load(
-    #     f"models/{name_RNN_2}.pt", map_location=torch.device("cpu")
-    # )
-    # model_RNN_2.device = device
-    # model_RNN_2.to(device)
+    model_RTNT_2: RNTN = torch.load(
+        f"models/{name_RTNT_2}.pt", map_location=torch.device("cpu")
+    )
+    model_RTNT_2.device = device
+    model_RTNT_2.to(device)
 
     # Get the trees of the negated phrases
     filepath: str = "./src/Experiments/negation_phrases_indexes.txt"
@@ -93,9 +85,21 @@ def main() -> None:
     real_predictions_RTNT: torch.Tensor = torch.argmax(outputs_RTNT, dim=1)
     correct_predictions_RTNT: int = count_correct(real_predictions_RTNT, labels)
 
+    outputs_RTNT_2: torch.Tensor = model_RTNT_2(filtered_trees, root_only=True)
+    real_predictions_RTNT_2: torch.Tensor = torch.argmax(outputs_RTNT_2, dim=1)
+    correct_predictions_RTNT_2: int = count_correct(real_predictions_RTNT_2, labels)
+
+    print(labels)
+    print(
+        real_predictions_simple,
+        real_predictions_simple_2,
+        real_predictions_RTNT,
+        real_predictions_RTNT_2,
+    )
     # Plot results
     models: List[str] = [
         "Simple_torch_embeddings",
+        "Simple_own_embeddings",
         "RNTN_torch_embeddings",
         "RNTN_own_embeddings",
     ]
@@ -103,6 +107,7 @@ def main() -> None:
         correct_predictions_simple,
         correct_predictions_simple_2,
         correct_predictions_RTNT,
+        correct_predictions_RTNT_2,
     ]
 
     plt.bar(models, counts, color="maroon", width=0.4)
