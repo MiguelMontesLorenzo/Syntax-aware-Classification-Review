@@ -22,12 +22,14 @@ class SkipGramNeg(nn.Module):
         self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None
     ) -> None:
         """
-        Initializes the SkipGramNeg model with given vocabulary size, embedding size, and noise distribution.
+        Initializes the SkipGramNeg model with given vocabulary size,
+        embedding size, and noise distribution.
 
         Args:
         - vocab_size (int): size of the vocabulary.
         - embed_dim (int): size of each embedding vector.
-        - noise_dist (torch.Tensor): distribution of noise words for negative sampling.
+        - noise_dist (torch.Tensor): distribution of noise
+        words for negative sampling.
         """
         super().__init__()
         self.vocab_size: int = vocab_size
@@ -47,10 +49,12 @@ class SkipGramNeg(nn.Module):
         Fetches input vectors for a batch of input words.
 
         Args:
-        - input_words (torch.Tensor): tensor of integers representing input words.
+        - input_words (torch.Tensor): tensor of integers representing input
+        words.
 
         Returns:
-        - input_vectors (torch.Tensor): tensor containing the input vectors for the given words.
+        - input_vectors (torch.Tensor): tensor containing the input vectors
+        for the given words.
         """
         return self.in_embed(input_words)
 
@@ -59,10 +63,12 @@ class SkipGramNeg(nn.Module):
         Fetches output vectors for a batch of output words.
 
         Args:
-        - output_words (torch.Tensor): tensor of integers representing output words.
+        - output_words (torch.Tensor): tensor of integers representing
+        output words.
 
         Returns:
-        - output_vectors (torch.Tensor): tensor containing the output vectors for the given words.
+        - output_vectors (torch.Tensor): tensor containing the output vectors
+        for the given words.
         """
         return self.out_embed(output_words)
 
@@ -75,7 +81,8 @@ class SkipGramNeg(nn.Module):
         - n_samples (int): number of negative samples to generate per word.
 
         Returns:
-        - noise_vectors (torch.Tensor): tensor of noise vectors with shape (batch_size, n_samples, n_embed).
+        - noise_vectors (torch.Tensor): tensor of noise vectors with shape
+        (batch_size, n_samples, n_embed).
         """
         if self.noise_dist is None:
             # Sample words uniformly
@@ -127,10 +134,10 @@ class NegativeSamplingLoss(nn.Module):
         Args:
         - input_vectors (torch.Tensor): A tensor containing input word vectors,
                             shape (batch_size, embed_size).
-        - output_vectors (torch.Tensor): A tensor containing output word vectors (positive samples),
-                            shape (batch_size, embed_size).
-        - noise_vectors (torch.Tensor): A tensor containing vectors for negative samples,
-                            shape (batch_size, n_samples, embed_size).
+        - output_vectors (torch.Tensor): A tensor containing output word
+        vectors (positive samples), shape (batch_size, embed_size).
+        - noise_vectors (torch.Tensor): A tensor containing vectors for
+        negative samples, shape (batch_size, n_samples, embed_size).
 
         Returns:
         - total (torch.Tensor): tensor containing the average loss for the batch.
@@ -152,6 +159,7 @@ class NegativeSamplingLoss(nn.Module):
             torch.bmm(-noise_vectors, input_vectors)
         )
 
-        # Return the negative sum of the correct and noisy log-sigmoid losses, averaged over the batch
+        # Return the negative sum of the correct and noisy log-sigmoid losses,
+        # averaged over the batch
         total: torch.Tensor = (-out_loss - noise_loss.squeeze().sum()).mean()
         return total

@@ -44,7 +44,8 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
 
     Returns:
     - trimmed_words (List[str]): list of trimmed (filtered) words.
-    - correspondences (Dict[int, Tuple(int)]): association of word index in tokens and the index of the sentence that
+    - correspondences (Dict[int, Tuple(int)]): association of word index in tokens and
+    the index of the sentence that
     word belongs to.
     """
     correspondences: Dict[int, str] = {}
@@ -97,11 +98,13 @@ def plot_embeddings(
 
 def save_model(model, model_path="skipgram_dep_model.pth"):
     """
-    Save the trained SkipGram model to a file, creating the directory if it does not exist.
+    Save the trained SkipGram model to a file, creating the directory if it
+    does not exist.
 
     Args:
     - model (SkipGram): trained SkipGram model.
-    - model_path (str): path to save the model file, including directory and filename.
+    - model_path (str): path to save the model file, including directory
+    and filename.
 
     Returns:
     - model_path (str): path where the model was saved.
