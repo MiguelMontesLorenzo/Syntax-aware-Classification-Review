@@ -4,7 +4,7 @@ import os
 
 
 class SerialNaiveBayes:
-    def __init__(self, vocabulary, output_size=0) -> None:
+    def __init__(self, vocabulary: list[str], output_size: int = 0) -> None:
         """
         Initializes the Naive Bayes classifier
 
@@ -16,7 +16,7 @@ class SerialNaiveBayes:
             None
         """
 
-        self.vocabulary = vocabulary
+        self.vocabulary: list[str] = vocabulary
         self.vocab_size = len(vocabulary)
         self.output_size = output_size
 
@@ -43,8 +43,8 @@ class SerialNaiveBayes:
         """
 
         if self.output_size == 0:
-            unique_labels = torch.unique(labels, sorted=True)
-            self.output_size = unique_labels.shape[0]
+            unique_labels: torch.Tensor = torch.unique(labels, sorted=True)
+            self.output_size: int = unique_labels.shape[0]
 
         words_tensor = torch.zeros(size=(self.vocab_size, self.output_size))
         class_tensor = torch.zeros(size=(self.output_size,))
@@ -59,7 +59,7 @@ class SerialNaiveBayes:
             words_tensor[:, sentence_label] += sentence.to(dtype=torch.float)
 
         # compute probabilities
-        sigma = 1
+        sigma: int = 1
         numerator = words_tensor + sigma
         denominator = (
             torch.sum(words_tensor, axis=0, keepdims=True) + sigma * self.vocab_size
@@ -68,8 +68,8 @@ class SerialNaiveBayes:
         class_prob = class_tensor / torch.sum(class_tensor, axis=0)
 
         # compute & save log probabilities
-        self.log_words_tensor = torch.log(words_prob)
-        self.log_class_tensor = torch.log(class_prob)
+        self.log_words_tensor: torch.Tensor = torch.log(words_prob)
+        self.log_class_tensor: torch.Tensor = torch.log(class_prob)
 
         return (words_prob, class_prob)
 

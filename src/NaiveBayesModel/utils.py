@@ -118,14 +118,14 @@ def randomize_indices(N: int) -> np.ndarray:
     return shuffled_indices
 
 
-def list_random_shuffle(input_list: list[int]) -> torch.Tensor:
+def list_random_shuffle(input_list: list[int]) -> list[int]:
     """
     Randomly shuffles the rows of a 2D tensor.
 
     """
-    array = np.array(input_list)
-    random_indices = randomize_indices(array.shape())
-    array = array[random_indices]
-    shuffled_list = array.tolist()
+    array: np.ndarray = np.array(input_list)
+    random_indices: np.ndarray = randomize_indices(array.shape())
+    array: np.ndarray = array[random_indices]
+    shuffled_list: list[int] = array.tolist()
 
     return shuffled_list
