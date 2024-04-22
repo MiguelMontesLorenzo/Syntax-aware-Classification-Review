@@ -11,7 +11,7 @@ from src.treebank import Tree
 from src.RecursiveModel.utils import flatten
 
 
-def download_file(url: str, save_dir: str, filename: str) -> None:
+def download_file(url: str, save_dir: str, filename: str) -> str:
     """
     Args:
     - url (str): url of the dataset.
@@ -19,7 +19,7 @@ def download_file(url: str, save_dir: str, filename: str) -> None:
     - file_name (str): name of the file.
 
     Returns:
-    - None
+    - file_path (str)
     """
     # Get the file path to save to
     filepath = os.path.join(save_dir, filename)

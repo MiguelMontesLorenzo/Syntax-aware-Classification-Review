@@ -62,7 +62,7 @@ class Tree:
             tokens += list(toks)
         self.root: Node = self.parse(tokens)
 
-        self.labels: List[int] = self.get_labels(self.root)
+        self.labels: List[Optional(int)] = self.get_labels(self.root)
         self.num_words: int = len(self.labels)
 
     def parse(self, tokens: List[str], parent: Optional[Node] = None) -> Node:
@@ -122,11 +122,11 @@ class Tree:
         Returns:
         - words (List[str]): list of words corresponding to the sentence
         """
-        leaves: List[Node] = self.get_leaves(self.root)
-        words: List[Optional[str]] = [node.word for node in leaves]
+        leaves: List[Optional[Node]] = self.get_leaves(self.root)
+        words: List[Optional[str]] = [node.word for node in leaves if node]
         return words
 
-    def get_labels(self, node: Optional[Node]) -> List[int]:
+    def get_labels(self, node: Optional[Node]) -> List[Optional[int]]:
         """
         Gets the terminal labels of the sentence starting with the node.
 
