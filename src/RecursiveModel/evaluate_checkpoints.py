@@ -1,5 +1,6 @@
 from typing import List, Dict
 import torch
+import torch.nn as nn
 import os
 
 from src.data import load_trees, generate_dataloaders, load_vocab
@@ -58,7 +59,7 @@ def main(num: int) -> None:
         )
         pretrained_dict_path: str = os.path.join(pretrained_folder, big_vocab_to_int)
 
-        weights: torch.Tensor = load_pretrained_weights(
+        weights: nn.Embedding = load_pretrained_weights(
             pretrained_weights_path, pretrained_dict_path, vocab_to_int
         )
 
@@ -69,23 +70,23 @@ def main(num: int) -> None:
             param.requires_grad = False
 
         # Define model
-        model: RNTN = RNTN(
+        model = RNTN(
             word2index=word2index,
             hidden_size=hidden_size,
             output_size=output_size,
             simple_RNN=simple_RNN,
-            device=device,
+            device=str(device),
             pretrained_model=pretrained_model,
         ).to(device)
 
     else:
         # Define model
-        model: RNTN = RNTN(
+        model = RNTN(
             word2index=word2index,
             hidden_size=hidden_size,
             output_size=output_size,
             simple_RNN=simple_RNN,
-            device=device,
+            device=str(device),
         ).to(device)
 
     model.load_state_dict(torch.load(f"models/{name}")["model_state_dict"])

@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 from collections import OrderedDict
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.treebank import Node, Tree
 from src.pretrained_embeddings import SkipGramNeg
@@ -17,7 +17,7 @@ class RNTN(nn.Module):
         output_size: int,
         simple_RNN: bool = False,
         device: str = "cpu",
-        pretrained_model: SkipGramNeg = None,
+        pretrained_model: Optional[SkipGramNeg] = None,
     ) -> None:
         """
         Construct the recursive NN.
@@ -36,7 +36,7 @@ class RNTN(nn.Module):
         self.word2index: Dict[str, int] = word2index
 
         if pretrained_model:
-            self.embed: torch.Tensor = pretrained_model.in_embed
+            self.embed: nn.Embedding = pretrained_model.in_embed
             self.initialize_embeddings: bool = False
 
         else:
