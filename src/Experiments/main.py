@@ -2,15 +2,13 @@ from typing import List
 
 import torch
 import matplotlib.pyplot as plt
-import numpy as np
 
-from src.data import download_data, load_trees, generate_dataloaders
+from src.data import download_data, load_trees
 from src.treebank import Tree
 from src.RecursiveModel.recursive import RNTN
-from src.RecurrentModel.models import RNN
 from src.RecursiveModel.utils import set_seed
 from src.Experiments.utils import read_indices, count_correct
-from torch.utils.data import DataLoader
+
 
 set_seed(42)
 
