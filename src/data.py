@@ -160,7 +160,7 @@ def preprocess_data() -> (
 
 def generate_dataloaders(
     batch_size=128, num_workers=4
-) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int]]:
+) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, int], Dict[int, str]]:
     train_data, val_data, test_data, vocab_to_int, int_to_vocab = preprocess_data()
 
     train_dataset: Dataset = SSTDataset(train_data, vocab_to_int)
