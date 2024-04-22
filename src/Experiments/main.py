@@ -36,27 +36,27 @@ def main() -> None:
     model_simple: RNTN = torch.load(
         f"models/{name_recursive}.pt", map_location=torch.device("cpu")
     )
-    model_simple.device = device
+    model_simple.device = str(device)
     model_simple.to(device)
 
     ##
     model_simple_2: RNTN = torch.load(
         f"models/{name_recursive_2}.pt", map_location=torch.device("cpu")
     )
-    model_simple_2.device = device
+    model_simple_2.device = str(device)
     model_simple_2.to(device)
 
     ##
     model_RTNT: RNTN = torch.load(
         f"models/{name_RTNT}.pt", map_location=torch.device("cpu")
     )
-    model_RTNT.device = device
+    model_RTNT.device = str(device)
     model_RTNT.to(device)
 
     model_RTNT_2: RNTN = torch.load(
         f"models/{name_RTNT_2}.pt", map_location=torch.device("cpu")
     )
-    model_RTNT_2.device = device
+    model_RTNT_2.device = str(device)
     model_RTNT_2.to(device)
 
     # Get the trees of the negated phrases

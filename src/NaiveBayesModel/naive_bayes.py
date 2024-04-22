@@ -150,7 +150,9 @@ class NaiveBayes:
             torch.Tensor: Log posterior probabilities for each class.
         """
         if self.conditional_probabilities is None or self.class_priors is None:
-            raise ValueError("Model must be trained before estimating class posteriors.")
+            raise ValueError(
+                "Model must be trained before estimating class posteriors."
+            )
 
         log_posteriors: torch.Tensor = torch.zeros_like(input=(self.unique_labels))
 

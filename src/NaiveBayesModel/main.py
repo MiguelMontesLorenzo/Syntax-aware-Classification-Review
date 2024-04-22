@@ -24,6 +24,8 @@ save_model = False
 
 
 def main() -> None:
+    
+    download_data()
 
     # Load training data
     trn_path: str = "data_sst/trees/train.txt"
@@ -70,57 +72,55 @@ def main() -> None:
     print(f"Total sentences: {len(tst_sentences)}")
     processed_tst_features: list[torch.Tensor] = [
         bag_of_words(sentence, wrd2idx) for sentence in tst_sentences
-    ]
+    ]  # type: ignore
 
     if modality == "VECTOR-WISE":
         # Convert the list of features to a tensor
         trn_features = torch.stack(processed_trn_features)
-        trn_labels: torch.Tensor = torch.tensor(trn_labels, dtype=torch.int)
+        trn_labels = torch.tensor(trn_labels, dtype=torch.int)
         tst_features = torch.stack(processed_tst_features)
-        tst_labels: torch.Tensor = torch.tensor(tst_labels, dtype=torch.int)
+        tst_labels = torch.tensor(tst_labels, dtype=torch.int)
 
         print("Training Naive Bayes model...")
         nb_model = NaiveBayes()
-        nb_model.fit(trn_features, trn_labels)
+        nb_model.fit(trn_features, trn_labels)  # type: ignore
 
         # Evaluate Naive Bayes model
         print("Evaluating Naive Bayes model...")
-        nb_predictions: list[int] = [nb_model.predict(ex) for ex in tst_features]
+        nb_predictions: list[int] = [nb_model.predict(ex) for ex in tst_features]  # type: ignore
         nb_metrics: torch.Dict[str, float] = evaluate_classification(
             torch.tensor(nb_predictions), tst_labels
-        )
+        )  # type: ignore
         print("Naive Bayes Metrics:", nb_metrics)
 
     if modality == "SERIAL":
         # Convert the list of features to a tensor
-        trn_labels: torch.Tensor = torch.tensor(trn_labels, dtype=torch.int)
-        tst_labels: torch.Tensor = torch.tensor(tst_labels, dtype=torch.int)
+        trn_labels = torch.tensor(trn_labels, dtype=torch.int)  # type: ignore
+        tst_labels = torch.tensor(tst_labels, dtype=torch.int)  # type: ignore
 
         # creating model object
-        number_of_classes = 5
-        nb_model = SerialNaiveBayes(wrd2idx, number_of_classes)
+        number_of_classes: int = 5
+        nb_model = SerialNaiveBayes(wrd2idx, number_of_classes)  # type: ignore
 
         print("Training Naive Bayes model...")
         if load_model:
             ckpt_name = os.path.join("stanford_dataset_train")
             ckpt_path = os.path.join(save_dir, "serial", ckpt_name)
-            nb_model.load(ckpt_path)
+            nb_model.load(ckpt_path)  # type: ignore
         else:
-            nb_model.fit(processed_trn_features, trn_labels)
+            nb_model.fit(torch.tensor(processed_trn_features), trn_labels)  # type: ignore
 
         # Evaluate Naive Bayes model
         print("Evaluating Naive Bayes model...")
-        nb_predictions: list[int] = [
-            nb_model.predict(ex) for ex in processed_tst_features
-        ]
-        nb_metrics: torch.Dict[str, float] = evaluate_classification(
-            torch.tensor(nb_predictions), tst_labels
+        nb_predictions = [nb_model.predict(ex) for ex in processed_tst_features]  # type: ignore
+        nb_metrics = evaluate_classification(
+            torch.tensor(nb_predictions), torch.tensor(tst_labels)
         )
         print("Naive Bayes Metrics:", nb_metrics)
 
         if save_model:
             print("Saving Model ...")
-            nb_model.save(save_dir)
+            nb_model.save(save_dir)  # type: ignore
 
 
 if __name__ == "__main__":

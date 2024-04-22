@@ -62,7 +62,7 @@ class SerialNaiveBayes:
         sigma: int = 1
         numerator = words_tensor + sigma
         denominator = (
-            torch.sum(words_tensor, axis=0, keepdims=True) + sigma * self.vocab_size
+            torch.sum(words_tensor, dim=0, keepdims=True) + sigma * self.vocab_size
         )
         words_prob = numerator / denominator
         class_prob = class_tensor / torch.sum(class_tensor, dim=0)

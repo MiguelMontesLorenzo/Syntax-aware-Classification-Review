@@ -89,7 +89,7 @@ class SkipGramNeg(nn.Module):
             # Sample words uniformly
             noise_dist: torch.Tensor = torch.ones(self.vocab_size)
         else:
-            noise_distr = self.noise_dist
+            noise_dist = self.noise_dist
 
         # Sample words from our noise distribution
         noise_words: torch.Tensor = noise_dist.multinomial(

@@ -21,11 +21,11 @@ def read_indices(filepath: str) -> List[int]:
     return indices
 
 
-def count_correct(predictions: List[torch.Tensor], labels: List[int]) -> int:
+def count_correct(predictions: torch.Tensor, labels: List[int]) -> int:
     """
     Count correct predictions given the labels.
     Args:
-    - predictions (List[int]): list of model predictions (as tensor)
+    - predictions (torch.Tensor): list of model predictions (as tensor)
     - labels (List[int]): list of correct labels
     Returns:
     - correct (int): number of correct predictions

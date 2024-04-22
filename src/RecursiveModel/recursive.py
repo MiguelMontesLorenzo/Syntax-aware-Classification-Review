@@ -73,7 +73,9 @@ class RNTN(nn.Module):
 
         # V
         if self.simple_RNN:
-            self.V.data = torch.zeros_like(self.V.data, dtype=self.V.dtype, device=self.device)
+            self.V.data = torch.zeros_like(
+                self.V.data, dtype=self.V.dtype, device=self.device
+            )
         else:
             for param in self.V.parameters():
                 nn.init.xavier_uniform_(param)
@@ -83,7 +85,7 @@ class RNTN(nn.Module):
         nn.init.xavier_uniform_(self.W_out)
         nn.init.xavier_uniform_(self.b)
 
-    def tree_propagation(self, node:  Optional[Node]) -> Dict[Node, torch.Tensor]:
+    def tree_propagation(self, node: Optional[Node]) -> Dict[Node, torch.Tensor]:
         """
         Compute the propagation of a node following the equation:
         h = f(h + Wx + b)

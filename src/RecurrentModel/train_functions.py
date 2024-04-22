@@ -132,7 +132,7 @@ def t_step(
 
     with torch.no_grad():
         for sentences, labels, text_len in test_data:
-            sentence = sentences.to(device)
+            sentences = sentences.to(device)
             labels = labels.to(device)
 
             outputs: torch.Tensor = model(sentences, text_len)
