@@ -25,7 +25,7 @@ class UniformWeighter(Weighter):
     def set_constants(self) -> None:
         return None
 
-    def weight_words(self, sentence: torch.Tensor) -> None:
+    def weight_words(self, sentence: torch.Tensor) -> torch.Tensor:
         # compute weights
         unnormalized_weights: torch.Tensor = torch.ones_like(sentence)
         normalized_weights: torch.Tensor = unnormalized_weights / torch.sum(

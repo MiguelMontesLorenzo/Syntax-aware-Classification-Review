@@ -48,7 +48,7 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
     the index of the sentence that
     word belongs to.
     """
-    correspondences: Dict[int, str] = {}
+    correspondences: Dict[int, tuple[str]] = {}
 
     trimmed_words: List[str] = []
     index: int = 0

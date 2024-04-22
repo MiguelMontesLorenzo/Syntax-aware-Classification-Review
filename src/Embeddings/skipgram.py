@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from typing import Optional
 
 
 class SkipGramNeg(nn.Module):
@@ -19,7 +20,7 @@ class SkipGramNeg(nn.Module):
     """
 
     def __init__(
-        self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None
+        self, vocab_size: int, embed_dim: int, noise_dist: Optional[torch.Tensor] = None
     ) -> None:
         """
         Initializes the SkipGramNeg model with given vocabulary size,
@@ -88,7 +89,7 @@ class SkipGramNeg(nn.Module):
             # Sample words uniformly
             noise_dist: torch.Tensor = torch.ones(self.vocab_size)
         else:
-            noise_dist: torch.Tensor = self.noise_dist
+            noise_distr = self.noise_dist
 
         # Sample words from our noise distribution
         noise_words: torch.Tensor = noise_dist.multinomial(
@@ -96,12 +97,12 @@ class SkipGramNeg(nn.Module):
         )
 
         device: str = "cuda" if self.out_embed.weight.is_cuda else "cpu"
-        noise_words: torch.Tensor = noise_words.to(device)
+        noise_words = noise_words.to(device)
 
         # Reshape output vectors to size (batch_size, n_samples, n_embed)
         noise_vectors: torch.Tensor = self.out_embed(noise_words)
 
-        noise_vectors: torch.Tensor = noise_vectors.reshape(
+        noise_vectors= noise_vectors.reshape(
             batch_size, n_samples, self.embed_dim
         )
 
@@ -142,10 +143,10 @@ class NegativeSamplingLoss(nn.Module):
         Returns:
         - total (torch.Tensor): tensor containing the average loss for the batch.
         """
-        input_vectors: torch.Tensor = input_vectors.reshape(
+        input_vectors = input_vectors.reshape(
             input_vectors.size(0), input_vectors.size(1), 1
         )
-        output_vectors: torch.Tensor = output_vectors.reshape(
+        output_vectors = output_vectors.reshape(
             input_vectors.size(0), 1, input_vectors.size(1)
         )
 

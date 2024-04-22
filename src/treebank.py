@@ -112,7 +112,7 @@ class Tree:
 
         return node
 
-    def get_words(self) -> List[str]:
+    def get_words(self) -> List[Optional[str]]:
         """
         Get the words of the sentence to parse
 
@@ -140,7 +140,7 @@ class Tree:
             return []
         return self.get_labels(node.left) + self.get_labels(node.right) + [node.label]
 
-    def get_leaves(self, node: Node) -> List[Node]:
+    def get_leaves(self, node: Node) -> List[Optional[Node]]:
         """
         Gets the terminal nodes of the sentence starting with the node.
 
