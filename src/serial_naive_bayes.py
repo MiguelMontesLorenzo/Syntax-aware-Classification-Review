@@ -7,6 +7,13 @@ class SerialNaiveBayes:
     def __init__(self, vocabulary, output_size=0) -> None:
         """
         Initializes the Naive Bayes classifier
+
+        Args:
+            vocabulary (list[str]): List of unique words in the vocabulary.
+            output_size (int): Number of classes in the dataset.
+
+        Returns:
+            None
         """
 
         self.vocabulary = vocabulary
@@ -16,14 +23,26 @@ class SerialNaiveBayes:
         self.log_words_tensor = None
         self.log_class_tensor = None
 
+        return None
+
     def fit(
             self, 
             sentences: list[torch.Tensor], 
             labels: torch.Tensor
         ) -> tuple[torch.Tensor, torch.Tensor]:
+
         """
         Estimates class prior probabilities from the given labels.
 
+        Args:
+            sentences (list[torch.Tensor]): 
+                List of bag of words representations of the training examples.
+            labels (torch.Tensor):
+                Labels corresponding to each training example.
+        Returns:
+            (tuple[torch.Tensor, torch.Tensor]):
+                A tuple of tensors containing the log of the conditional probabilities
+                and the log of the class priors.
         """
 
         if self.output_size == 0:
@@ -60,16 +79,30 @@ class SerialNaiveBayes:
     
     def predict_probabilities(self, sentence: torch.Tensor) -> torch.Tensor:
         """
-        Predicts the class labels for the given features.
+        Predicts the class log-probabilities for the given features.
+
+        Args:
+            sentence (torch.Tensor): 
+                Bag of words representation of the sentence example to classify.
+        Returns:
+            (torch.Tensor):
+                A tensor containing the log of the conditional probabilities.
         """
 
         conditional_log_probs = torch.einsum('ij,i->j', self.log_words_tensor, sentence)
         log_probs = conditional_log_probs + self.log_class_tensor
         return log_probs
     
-    def predict(self, sentence: torch.Tensor) -> torch.Tensor:
+    def predict(self, sentence: torch.Tensor) -> int:
         """
         Predicts the class labels for the given features.
+
+        Args:
+            sentence (torch.Tensor): 
+                Bag of words representation of the sentence example to classify.
+        Returns:
+            (int):
+                The predicted class label.
         """
 
         log_probs = self.predict_probabilities(sentence)
@@ -79,6 +112,12 @@ class SerialNaiveBayes:
     def save(self, path: str) -> None:
         """
         Saves the model to the given path.
+
+        Args:
+            path (str): 
+                Path to save the model.
+        Returns:
+            None
         """
         time_string = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         ckpt_name = os.path.join(path, "serial", time_string)
@@ -100,7 +139,12 @@ class SerialNaiveBayes:
     
     def load(self, path) -> None:
         """
-        Saves the model to the given path.
+        Loads the model from the given path.
+        Args:
+            path (str): 
+                Path containing the model.
+        Returns:
+            None
         """
 
         print(f"Loading model parameters from {path}")

@@ -13,12 +13,12 @@ from src.utils import tokenize
 def download_file(url: str, save_dir: str, filename: str) -> None:
     """
     Args:
-    - url (str): url of the dataset.
-    - save_dir (str): directory for the dataset.
-    - file_name (str): name of the file.
+        url (str): url of the dataset.
+        save_dir (str): directory for the dataset.
+        file_name (str): name of the file.
 
     Returns:
-    - None
+        None
     """
     # Get the file path to save to
     filepath = os.path.join(save_dir, filename)
@@ -50,15 +50,16 @@ def extract_zip(zip_path: str, extract_dir: str) -> None:
         zip_ref.extractall(extract_dir)
 
 
-def download_data() -> str:
+def download_data() -> tuple[str, str, str]:
     """
     Complete pipeline to download sst data.
 
     Args:
-    - None
+        None
 
     Returns:
-    - None
+        tuple[str, str, str]: 
+            Training, validation, and test file paths.
     """
 
     # Define the URL, directory name, and file name
@@ -84,6 +85,18 @@ def download_data() -> str:
 
 
 def load_sentences(infile: str) -> tuple[list[str], list[int]]:
+
+    """
+    Loads standford dataset sentences (and labels) without the tree structure.
+
+    Args:
+        infile (str): 
+            Path to the file with the sentences to load.
+
+    Returns:
+        (tuple[list[str], list[int]]): 
+            A tuple of lists containing the sentences and their corresponding labels.
+    """
 
     sentences: list[str] = list([])
     labels: list[int] = list([])
@@ -159,42 +172,3 @@ def bag_of_words(text: list[str], vocab: dict[str, int], binary: bool = False) -
                 bow[vocab[word]] = count
 
     return bow
-
-
-def save_bows(bows: list[torch.Tensor], path: str) -> None:
-    """
-    Saves a BoW vector to a file.
-    """
-
-    # Saves a file with each line containing the indices of non-zero elements its
-    # corresponding sentence BoW vector
-    with open(path, "w") as file:
-        for bow in bows:
-            file.write(" ".join([str(idx) for idx in torch.nonzero(bow)]) + "\n")
-
-    return None
-
-def load_bows(path: str, vocab_size: int) -> list[torch.Tensor]:
-    """
-    Loads BoW vectors from a file into a list of torch.Tensor objects.
-
-    Args:
-        path (str): 
-            The path to the file containing the saved BoW vectors.
-        vocab_size (int): 
-            The size of the vocabulary, which is also the size of the BoW vectors.
-
-    Returns:
-        list[torch.Tensor]: A list of BoW vectors loaded from the file.
-    """
-
-    bows = []
-
-    with open(path, "r") as file:
-        for line in file:
-            bow = torch.zeros(vocab_size, dtype=torch.float32)
-            indices = list(map(int, line.strip().split()))
-            bow[indices] = 1
-            bows.append(bow)
-
-    return bows
