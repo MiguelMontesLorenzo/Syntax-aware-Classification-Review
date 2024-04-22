@@ -62,7 +62,7 @@ class Tree:
             tokens += list(toks)
         self.root: Node = self.parse(tokens)
 
-        self.labels: List[Optional(int)] = self.get_labels(self.root)
+        self.labels: List[Optional[int]] = self.get_labels(self.root)
         self.num_words: int = len(self.labels)
 
     def parse(self, tokens: List[str], parent: Optional[Node] = None) -> Node:
@@ -155,7 +155,7 @@ class Tree:
         if node.isLeaf:
             return [node]
         else:
-            return self.get_leaves(node.left) + self.get_leaves(node.right)
+            return self.get_leaves(node.left) + self.get_leaves(node.right) + []
 
 
 def clean_sentence(sentence: str) -> str:
