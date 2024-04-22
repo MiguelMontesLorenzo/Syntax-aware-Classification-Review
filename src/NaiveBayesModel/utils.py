@@ -107,7 +107,7 @@ def evaluate_classification(
     return metrics
 
 
-def randomize_indices(N: int) -> np.array:
+def randomize_indices(N: int) -> np.ndarray:
     """
     Randomly shuffles the rows of a 2D tensor.
 

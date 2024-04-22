@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from typing import Optional
 
 
 class SkipGramNeg(nn.Module):
@@ -18,7 +19,7 @@ class SkipGramNeg(nn.Module):
     """
 
     def __init__(
-        self, vocab_size: int, embed_dim: int, noise_dist: torch.Tensor = None
+        self, vocab_size: int, embed_dim: int, noise_dist: Optional[torch.Tensor] = None
     ):
         super().__init__()
         self.vocab_size: int = vocab_size

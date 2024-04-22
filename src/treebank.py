@@ -2,7 +2,7 @@ from typing import List, Optional, Dict
 
 
 class Node:
-    def __init__(self, label: int, word: str = None, parent=None) -> None:
+    def __init__(self, label: int, word: Optional[str] = None, parent=None) -> None:
         """
         Initialize Node class.
 
