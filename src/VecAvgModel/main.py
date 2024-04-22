@@ -10,8 +10,8 @@ from src.data import download_data, generate_dataloaders
 from src.utils import save_model, load_pretrained_weights
 from src.treebank import Tree
 from src.pretrained_embeddings import SkipGramNeg
-from src.models import VecAvg, Weighter, UniformWeighter, NaiveBayesWeighter
-from src.train_functions import train_step, val_step
+from src.VecAvgModel.models import VecAvg, Weighter, UniformWeighter, NaiveBayesWeighter
+from src.VecAvgModel.train_functions import train_step, val_step
 
 from torch.utils.data import DataLoader
 

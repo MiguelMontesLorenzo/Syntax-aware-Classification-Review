@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 # own modules
 from src.utils import accuracy
-from src.models import Weighter
+from src.VecAvgModel.models import Weighter
 
 
 def train_step(

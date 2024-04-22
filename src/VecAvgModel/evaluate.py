@@ -4,15 +4,13 @@ import torch
 # from torch.utils.data import DataLoader
 from torch.jit import RecursiveScriptModule
 
-# other libraries
-# from tqdm.auto import tqdm
 from typing import Final
-from src.treebank import Tree
 from torch.utils.data import DataLoader
 
 from src.data import generate_dataloaders
-from src.train_functions import test_step
-from src.models import Weighter, UniformWeighter
+from src.treebank import Tree
+from src.VecAvgModel.train_functions import test_step
+from src.VecAvgModel.models import Weighter, UniformWeighter
 
 # static variables
 DATA_PATH: Final[str] = "data"
