@@ -122,8 +122,8 @@ class SerialNaiveBayes:
             os.makedirs(ckpt_name)
 
         # save model parameters
-        words_path = os.path.join(ckpt_name, f"log_words_tensor.pt")
-        class_path = os.path.join(ckpt_name, f"log_class_tensor.pt")
+        words_path = os.path.join(ckpt_name, "log_words_tensor.pt")
+        class_path = os.path.join(ckpt_name, "log_class_tensor.pt")
 
         print(f"Saving model parameters to {ckpt_name}")
 
