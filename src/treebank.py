@@ -155,7 +155,7 @@ class Tree:
         if node.isLeaf:
             return [node]
         else:
-            return self.get_leaves(node.left) + self.get_leaves(node.right)
+            return self.get_leaves(node.left) + self.get_leaves(node.right) + []
 
 
 def clean_sentence(sentence: str) -> str:
