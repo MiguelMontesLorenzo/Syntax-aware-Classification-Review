@@ -200,7 +200,7 @@ def process_csv(csv_file: str) -> List[str]:
     Returns:
     - sentences (List[str]): sentences from the IMBD reviews.
     """
-    encoding: TextIOWrapper = "utf-8"
+    encoding: TextIOWrapper = TextIOWrapper("utf-8")
     sentences: list = []
     with open(csv_file, "r", newline="", encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -507,7 +507,7 @@ class EmbeddingsDataset(Dataset):
             A tuple of context and target, both converted to integer representations.
         """
         word: int = self.words[idx]
-        
+
         tree_idx: int
         word_idx: int
         tree_idx, word_idx = self.correspondences[idx]

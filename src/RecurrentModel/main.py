@@ -51,7 +51,7 @@ def main() -> None:
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    device = "cpu"
+    device = torch.device("cpu")
 
     download_data()
 
@@ -110,7 +110,7 @@ def main() -> None:
             num_classes=NUM_CLASSES,
             num_layers=1,
             bidirectional=True,
-            device=device,
+            device=str(device),
         ).to(device)
 
     # Define loss function and optimizer

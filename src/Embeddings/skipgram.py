@@ -35,7 +35,7 @@ class SkipGramNeg(nn.Module):
         super().__init__()
         self.vocab_size: int = vocab_size
         self.embed_dim: int = embed_dim
-        self.noise_dist: torch.Tensor = noise_dist
+        self.noise_dist: Optional[torch.Tensor] = noise_dist
 
         # Define embedding layers for input and output words
         self.in_embed: nn.Embedding = nn.Embedding(self.vocab_size, self.embed_dim)
@@ -102,9 +102,7 @@ class SkipGramNeg(nn.Module):
         # Reshape output vectors to size (batch_size, n_samples, n_embed)
         noise_vectors: torch.Tensor = self.out_embed(noise_words)
 
-        noise_vectors= noise_vectors.reshape(
-            batch_size, n_samples, self.embed_dim
-        )
+        noise_vectors = noise_vectors.reshape(batch_size, n_samples, self.embed_dim)
 
         return noise_vectors
 

@@ -98,7 +98,7 @@ class RNN(nn.Module):
         """
         embedded: torch.Tensor = self.embedding(x)
 
-        packed_embedded: torch.Tensor = nn.utils.rnn.pack_padded_sequence(
+        packed_embedded: torch.PackedSequence = nn.utils.rnn.pack_padded_sequence(
             embedded, text_lengths.cpu().numpy(), batch_first=True
         )
 

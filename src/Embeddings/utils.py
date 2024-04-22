@@ -35,7 +35,7 @@ def clean_text(text: str) -> str:
     return text
 
 
-def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
+def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, tuple[int, int]]]:
     """
     Processed the input sentences to extrcat the list of words and tokenize the text.
 
@@ -48,7 +48,7 @@ def tokenize(sentences: List[str]) -> Tuple[List[str], Dict[int, str]]:
     the index of the sentence that
     word belongs to.
     """
-    correspondences: Dict[int, tuple[str]] = {}
+    correspondences: Dict[int, tuple[int, int]] = {}
 
     trimmed_words: List[str] = []
     index: int = 0
