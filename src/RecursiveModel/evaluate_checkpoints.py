@@ -2,12 +2,12 @@ from typing import List, Dict
 import torch
 import os
 
-from src.data import download_data, load_trees, generate_dataloaders, load_vocab
+from src.data import load_trees, generate_dataloaders, load_vocab
 from src.treebank import Tree
-from src.utils import load_pretrained_weights, save_model
+from src.utils import load_pretrained_weights
 from src.pretrained_embeddings import SkipGramNeg
 from src.RecursiveModel.recursive import RNTN
-from src.RecursiveModel.train_functions import train, test
+from src.RecursiveModel.train_functions import test
 from src.RecursiveModel.utils import set_seed
 
 set_seed(42)
@@ -24,16 +24,10 @@ def main(num: int) -> None:
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     hidden_size: int = 300
-    lr: float = 0.02
-    epochs: int = 30
     batch_size: int = 4
     output_size: int = 5
-    step_size: int = 20
-    gamma: float = 0.1
     simple_RNN: bool = False
     our_embeddings = True
-    patience: int = 20
-    best_val_loss: float = float("inf")
 
     # empty nohup file
     open("nohup.out", "w").close()
