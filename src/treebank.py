@@ -140,7 +140,7 @@ class Tree:
             return []
         return self.get_labels(node.left) + self.get_labels(node.right) + [node.label]
 
-    def get_leaves(self, node: Node) -> List[Optional[Node]]:
+    def get_leaves(self, node: Optional[Node]) -> List[Optional[Node]]:
         """
         Gets the terminal nodes of the sentence starting with the node.
 

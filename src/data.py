@@ -90,9 +90,9 @@ def load_trees(file: str) -> List[Tree]:
     """
     filename: str = "data_sst/trees/" + file + ".txt"
     print(f"Loading {filename} trees...")
-    encoding: TextIOWrapper = "utf-8"
-    with open(filename, "r", encoding=encoding) as file:
-        trees: List[Tree] = [Tree(line.strip()) for line in file.readlines()]
+    encoding: str = "utf-8"
+    with open(filename, "r", encoding=encoding) as open_file:
+        trees: List[Tree] = [Tree(line.strip()) for line in open_file.readlines()]
 
     return trees
 
@@ -109,8 +109,8 @@ class SSTDataset(Dataset):
             context_size (int): The number of words to include in the context.
         """
         self.vocab_to_int: Dict[str, int] = vocab_to_int
-        self.data: List[Tuple[List[Optional[str]], int]] = [
-            (tree.get_words(), tree.labels[-1]) for tree in data
+        self.data: List[Tuple[List[Optional[str]], Optional[int]]] = [
+            (tree.get_words(), tree.labels[-1] if tree.labels else 0) for tree in data
         ]
 
     def __len__(self):
@@ -199,13 +199,17 @@ def generate_dataloaders(
 
 
 def create_lookup_tables(data: List[Tree]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    words: List[str] = [word for tree in data for word in tree.get_words()]
+    words: List[str] = [
+        word for tree in data for word in tree.get_words() if word is not None
+    ]
 
     word_counts: Counter = Counter(words)
-    sorted_vocab: List[int] = sorted(word_counts, key=word_counts.get, reverse=True)
+    sorted_vocab: List[str] = sorted(
+        word_counts.keys(), key=lambda word: word_counts[word], reverse=True
+    )
 
     int_to_vocab: Dict[int, str] = {i: word for i, word in enumerate(sorted_vocab)}
-    vocab_to_int: Dict[str, int] = {word: i for i, word in int_to_vocab.items()}
+    vocab_to_int: Dict[str, int] = {word: i for i, word in enumerate(sorted_vocab)}
     return vocab_to_int, int_to_vocab
 
 
@@ -236,8 +240,8 @@ def collate_fn(
             each text sequence.
     """
 
-    sorted_batch: List[Tuple[List[torch.Tensor, torch.Tensor]]] = reversed(
-        sorted(batch, key=lambda x: x[0].nelement())
+    sorted_batch: List[Tuple[torch.Tensor, torch.Tensor]] = list(
+        reversed(sorted(batch, key=lambda x: x[0].nelement()))
     )
 
     texts_indx: List[torch.Tensor] = []
