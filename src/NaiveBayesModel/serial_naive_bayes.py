@@ -20,8 +20,8 @@ class SerialNaiveBayes:
         self.vocab_size = len(vocabulary)
         self.output_size = output_size
 
-        self.log_words_tensor = None
-        self.log_class_tensor = None
+        self.log_words_tensor: torch.Tensor
+        self.log_class_tensor: torch.Tensor
 
         return None
 
@@ -44,7 +44,7 @@ class SerialNaiveBayes:
 
         if self.output_size == 0:
             unique_labels: torch.Tensor = torch.unique(labels, sorted=True)
-            self.output_size: int = unique_labels.shape[0]
+            self.output_size = unique_labels.shape[0]
 
         words_tensor = torch.zeros(size=(self.vocab_size, self.output_size))
         class_tensor = torch.zeros(size=(self.output_size,))
@@ -68,8 +68,8 @@ class SerialNaiveBayes:
         class_prob = class_tensor / torch.sum(class_tensor, axis=0)
 
         # compute & save log probabilities
-        self.log_words_tensor: torch.Tensor = torch.log(words_prob)
-        self.log_class_tensor: torch.Tensor = torch.log(class_prob)
+        self.log_words_tensor = torch.log(words_prob)
+        self.log_class_tensor = torch.log(class_prob)
 
         return (words_prob, class_prob)
 
@@ -89,7 +89,7 @@ class SerialNaiveBayes:
         log_probs = conditional_log_probs + self.log_class_tensor
         return log_probs
 
-    def predict(self, sentence: torch.Tensor) -> int:
+    def predict(self, sentence: torch.Tensor) -> float:
         """
         Predicts the class labels for the given features.
 

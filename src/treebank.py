@@ -123,10 +123,10 @@ class Tree:
         - words (List[str]): list of words corresponding to the sentence
         """
         leaves: List[Node] = self.get_leaves(self.root)
-        words: List[str] = [node.word for node in leaves]
+        words: List[Optional[str]] = [node.word for node in leaves]
         return words
 
-    def get_labels(self, node: Node) -> List[int]:
+    def get_labels(self, node: Optional[Node]) -> List[int]:
         """
         Gets the terminal labels of the sentence starting with the node.
 
