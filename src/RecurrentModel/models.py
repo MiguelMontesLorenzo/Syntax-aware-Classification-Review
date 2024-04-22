@@ -7,23 +7,27 @@ from src.pretrained_embeddings import SkipGramNeg
 
 class RNN(nn.Module):
     """
-    A Recurrent Neural Network (RNN) model implemented using PyTorch for sentiment classification.
+    A Recurrent Neural Network (RNN) model implemented using PyTorch for sentiment
+    classification.
 
-    This model utilizes an embedding layer with pre-trained weights, followed by an LSTM layer
-    for processing sequential data, and a linear layer for classification. The LSTM can be bidirectional
-    or unidirectional.
+    This model utilizes an embedding layer with pre-trained weights, followed
+    by an LSTM layer
+    for processing sequential data, and a linear layer for classification.
+    The LSTM can be bidirectional or unidirectional.
 
     Attributes:
     - embedding (nn.Embedding): Embedding layer initialized with pre-trained weights.
     - embedding_dim (int): dimensions of embeddings.
     - bidirectional (bool): indicates whether it is bidirectional or not.
     - hidden_dim (int): size of the hidden state of the LSTM
-    - rnn (nn.LSTM): LSTM (Long Short Term Memory) layer for processing sequential data.
+    - rnn (nn.LSTM): LSTM (Long Short Term Memory) layer for
+    processing sequential data.
     - fc (nn.Linear): Linear layer for classification.
 
     Args:
     - pretrained_model (SkipGramNeg): Pre-trained embedding model.
-    - hidden_dim (int): the number of features in the hidden state of the LSTM.
+    - hidden_dim (int): the number of features in the hidden state of
+    the LSTM.
     - num_classes (int): number of classes to classify.
     - num_layers (int): the number of layers in the LSTM.
     - bidirectional (bool): bidirectional or not.
@@ -41,11 +45,14 @@ class RNN(nn.Module):
         pretrained_model: SkipGramNeg = None,
     ) -> None:
         """
-        Initializes the RNN model with given embedding weights, hidden dimension, and number of layers.
+        Initializes the RNN model with given embedding weights,
+        hidden dimension, and number of layers.
 
          Args:
-        - pretrained_model (SkipGramNeg): Pre-trained embedding model.
-        - hidden_dim (int): the number of features in the hidden state of the LSTM.
+        - pretrained_model (SkipGramNeg): Pre-trained embedding
+        model.
+        - hidden_dim (int): the number of features in the hidden state
+        of the LSTM.
         - num_classes (int): number of classes to classify.
         - num_layers (int): the number of layers in the LSTM.
         - bidirectional (bool): bidirectional or not.
@@ -84,10 +91,12 @@ class RNN(nn.Module):
 
         Args:
         - x (torch.Tensor): The input tensor containing word indices.
-        - text_lengths (torch.Tensor): Tensor containing the lengths of texts in the batch.
+        - text_lengths (torch.Tensor): Tensor containing the lengths of
+        texts in the batch.
 
         Returns:
-        - outputs (torch.Tensor): The output tensor after passing through the model.
+        - outputs (torch.Tensor): The output tensor after passing through
+        the model.
         """
         embedded: torch.Tensor = self.embedding(x)
 

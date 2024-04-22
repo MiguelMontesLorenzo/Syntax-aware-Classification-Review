@@ -141,9 +141,8 @@ def main() -> None:
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= patience:
-                print(
-                    f"Early stopping triggered at epoch {epoch}. No improvement in test loss for {patience} consecutive epochs."
-                )
+                print(f"Early stopping triggered at epoch {epoch}. ")
+                print(f"No improvement in test loss for {patience} consecutive epochs.")
                 break
 
         # scheduler.step()

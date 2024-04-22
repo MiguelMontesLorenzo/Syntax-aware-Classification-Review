@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.optim as optim
 import torch.nn.functional as F
-import numpy as np
 from collections import OrderedDict
 from typing import Dict, List
 
@@ -96,7 +94,8 @@ class RNTN(nn.Module):
         - node (Node): node to propagate from
 
         Returns:
-        - recursive_tensor (Dict[Node, int]): Dictionary with the node and it's vector representation
+        - recursive_tensor (Dict[Node, int]): Dictionary with the
+        node and it's vector representation
         """
         recursive_tensor: Dict[Node, torch.Tensor] = OrderedDict()
 
@@ -171,7 +170,9 @@ class RNTN(nn.Module):
         propagated: List = []
 
         for tree in trees:
-            recursive_tensor: Dict[Node, torch.Tensor] = self.tree_propagation(tree.root)
+            recursive_tensor: Dict[Node, torch.Tensor] = self.tree_propagation(
+                tree.root
+            )
             if root_only:
                 recursive_tensor_element: torch.Tensor = recursive_tensor[tree.root]
                 propagated.append(recursive_tensor_element)
@@ -183,6 +184,8 @@ class RNTN(nn.Module):
 
         propagated: torch.Tensor = torch.cat(propagated)
 
-        output: torch.Tensor = F.log_softmax(torch.matmul(propagated, self.W_out), dim=1)
+        output: torch.Tensor = F.log_softmax(
+            torch.matmul(propagated, self.W_out), dim=1
+        )
 
         return output
