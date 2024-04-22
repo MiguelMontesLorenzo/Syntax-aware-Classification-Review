@@ -1,5 +1,5 @@
 # Syntax-aware-Classification-Review
-Traditionally, sentiment analysis has been implemented solely on semantic characteristics. As the Stanford paper \cite{Stanford2013} highlights, this semantic-space is not enough to complete this task successfully. To solve that problem, they have introduced the Sentiment TreeBank dataset (SST), which incorporates the syntactical structure of sentences. This paper will analyse the impact of using syntactical characteristics for sentiment analysis using the SST dataset on different recursive models. Futhermore, the addition of more syntactical information to the models will be studied with the use of embeddings pretrained with dependency parsing. Our paper proves that taking into account this new syntactic information has a positive impact on the accuracy.
+Traditionally, sentiment analysis has been implemented solely on semantic characteristics. As the Stanford paper highlights, this semantic-space is not enough to complete this task successfully. To solve that problem, they have introduced the Sentiment TreeBank dataset (SST), which incorporates the syntactical structure of sentences. This paper will analyse the impact of using syntactical characteristics for sentiment analysis using the SST dataset on different recursive models. Futhermore, the addition of more syntactical information to the models will be studied with the use of embeddings pretrained with dependency parsing. Our paper proves that taking into account this new syntactic information has a positive impact on the accuracy.
 
 ## Structure
 - data_sst (the folder is downloaded when executing)
@@ -41,3 +41,10 @@ Despite these challenges, our experiments highlight the significance of incorpor
 Additionally, it's worth noting in the results that, since RNTN already incorporates sufficient syntactic features, additional embeddings might not be necessary for it. However, for models lacking such inherent syntactic information, such as the simple RecNN, pretrained embeddings could significantly improve their performance.
 
 Moreover, it could be mentioned that using pretrained embeddings with simpler models might be a more viable option compared to more complex models like RNTN, particularly considering training time constraints.
+
+## Conclusion
+In conclusion, our study underscores the significance of incorporating syntactic characteristics into text classification models. Despite the challenges encountered, such as overfitting and training complexities, the integration of syntactic embeddings substantially improves model performance for simpler models with less training time. We have encountered an accuracy improvement when introducing syntactic embeddings in all cases except for the bidirectional RNN, which provides very poor results in both cases.
+
+Due to the further interaction between input words provided by the RNTN architecture over basic recursion, these models can capture the scope of negation with higher success. In this aspect, the worse performance of our syntactic embeddings with respect to the Torch embeddings may be explained by the extra syntaxis component itself, which doesn't take into account negative relationships so clearly.
+
+Overall, the results of recursive models compared to traditional ones clearly display how these models are able to benefit from the constituency parsing and other additional syntactical information. This enhancement not only leads to more accurate predictions but also lays the groundwork for developing more robust and effective syntax-aware classification systems.
