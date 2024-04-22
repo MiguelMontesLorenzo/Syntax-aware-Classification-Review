@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
-from io import TextIOWrapper
 
 from src.treebank import Tree
 from src.RecursiveModel.utils import flatten
