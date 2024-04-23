@@ -2,10 +2,11 @@
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 
 # own modules
 from src.utils import accuracy
-from src.VecAvgModel.models import Weighter
+from src.models import Weighter
 
 
 def train_step(
@@ -16,6 +17,7 @@ def train_step(
     epoch: int,
     device: torch.device,
     weigther: Weighter,
+    num_classes: int,
 ) -> None:
     """
     This function computes the training step.
@@ -38,29 +40,30 @@ def train_step(
     model.train()
 
     # Iterate over the training data
+    X_train: torch.Tensor
+    y_train: torch.Tensor
     for X_train, y_train, _ in train_data:
 
         # Move the data to the correct device
-        X_train: torch.Tensor
-        y_train: torch.Tensor
         X_train, y_train = X_train.to(device), y_train.to(device)
 
         # Flatten the input tensor
-        X_train: torch.Tensor = X_train.view(X_train.size(0), -1)
+        X_train = X_train.view(X_train.size(0), -1)
 
-        # 1. Produce predictions
+        # 1. Zero grad on the optimizer
+        optimizer.zero_grad()
+
+        # 2. Produce predictions
         y_pred: torch.Tensor = model(X_train, weigther)
 
-        # 2. Compute loss
-        batch_loss: float = loss(y_pred, y_train)
-        losses.append(batch_loss.item())
+        # 3. Compute loss
+        one_hot_y_train: torch.Tensor = F.one_hot(y_train, num_classes).float()
+        batch_loss: torch.Tensor = loss(y_pred, one_hot_y_train)
+        losses.append(batch_loss.detach().numpy())
 
-        # 3. Compute accuracy
+        # 4. Compute accuracy
         acc: torch.Tensor = accuracy(y_pred, y_train)
         accuracies.append(acc.item())
-
-        # 4. Zero grad of the optimizer
-        optimizer.zero_grad()
 
         # 5. Loss backwards
         batch_loss.backward()
@@ -80,6 +83,7 @@ def val_step(
     epoch: int,
     device: torch.device,
     weighter: Weighter,
+    num_classes: int,
 ) -> None:
     """
     This function computes the validation step.
@@ -102,22 +106,23 @@ def val_step(
 
     # Iterate over the training data
     with torch.no_grad():
+        X_val: torch.Tensor
+        y_val: torch.Tensor
         for X_val, y_val, _ in val_data:
 
             # Move the data to the correct device
-            X_val: torch.Tensor
-            y_val: torch.Tensor
             X_val, y_val = X_val.to(device), y_val.to(device)
 
             # Flatten the input tensor
-            X_val: torch.Tensor = X_val.view(X_val.size(0), -1)
+            X_val = X_val.view(X_val.size(0), -1)
 
             # 1. Produce predictions
             y_pred: torch.Tensor = model(X_val, weighter)
 
             # 2. Compute loss
-            batch_loss: float = loss(y_pred, y_val)
-            losses.append(batch_loss.item())
+            one_hot_y_val: torch.Tensor = F.one_hot(y_val, num_classes).float()
+            batch_loss: float = loss(y_pred, one_hot_y_val)
+            losses.append(batch_loss)
 
             # 3. Compute accuracy
             acc: torch.Tensor = accuracy(y_pred, y_val)
@@ -153,15 +158,15 @@ def test_step(
     model.eval()
 
     # Iterate over the training data
-    for X_test, y_test in test_data:
+    X_test: torch.Tensor
+    y_test: torch.Tensor
+    for X_test, y_test, _ in test_data:
 
         # Move the data to the correct device
-        X_test: torch.Tensor
-        y_test: torch.Tensor
         X_test, y_test = X_test.to(device), y_test.to(device)
 
         # Flatten the input tensor
-        X_test: torch.Tensor = X_test.view(X_test.size(0), -1)
+        X_test = X_test.view(X_test.size(0), -1)
 
         # 1. Produce predictions
         y_pred: torch.Tensor = model(X_test, weighter)
@@ -170,4 +175,5 @@ def test_step(
         acc: torch.Tensor = accuracy(y_pred, y_test)
         accuracies.append(acc.item())
 
-    return np.mean(accuracies)
+    maan_acc: float = np.mean(accuracies)
+    return maan_acc
