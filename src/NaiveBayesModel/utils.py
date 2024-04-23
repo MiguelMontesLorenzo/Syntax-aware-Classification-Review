@@ -98,9 +98,9 @@ def evaluate_classification(
     Returns:
         dict: A dictionary containing the calculated metrics.
     """
-    
-    accuracy = torch.sum(predictions == labels) / len(labels)
-    metrics = {
+
+    accuracy: torch.Tensor = torch.sum(predictions == labels) / len(labels)
+    metrics: Dict[str, int | float | bool] = {
         "accuracy": accuracy.item(),
     }
 
@@ -113,21 +113,7 @@ def randomize_indices(N: int) -> np.array:
 
     """
 
-    indices = np.arange(N)
-    shuffled_indices = np.random.permutation(indices)
+    indices: np.array = np.arange(N)
+    shuffled_indices: np.array = np.random.permutation(indices)
 
     return shuffled_indices
-
-def list_random_shuffle(input_list: list[int]) -> torch.Tensor:
-    """
-    Randomly shuffles the rows of a 2D tensor.
-
-    """
-    array = np.array(input_list)
-    random_indices = randomize_indices(array.shape())
-    array = array[random_indices]
-    shuffled_list = array.tolist()
-
-    return shuffled_list
-
-
