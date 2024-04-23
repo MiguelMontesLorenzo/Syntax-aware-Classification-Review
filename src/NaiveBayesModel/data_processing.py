@@ -1,5 +1,4 @@
 import os
-import re
 import requests
 import zipfile
 from collections import Counter
@@ -10,7 +9,7 @@ from src.treebank import Tree
 from src.utils import tokenize
 
 
-def download_file(url: str, save_dir: str, filename: str) -> None:
+def download_file(url: str, save_dir: str, filename: str) -> str:
     """
     Args:
         url (str): url of the dataset.
@@ -21,7 +20,7 @@ def download_file(url: str, save_dir: str, filename: str) -> None:
         None
     """
     # Get the file path to save to
-    filepath = os.path.join(save_dir, filename)
+    filepath: str = os.path.join(save_dir, filename)
 
     # Download the file
     print(f"Downloading {filename}...")
@@ -58,7 +57,7 @@ def download_data() -> tuple[str, str, str]:
         None
 
     Returns:
-        tuple[str, str, str]: 
+        tuple[str, str, str]:
             Training, validation, and test file paths.
     """
 
@@ -76,7 +75,7 @@ def download_data() -> tuple[str, str, str]:
         os.makedirs(path)
 
         # Download the file
-        zip_path = download_file(urls[0], ".", name)
+        zip_path: str = download_file(urls[0], ".", name)
 
         # Extract the ZIP file
         extract_zip(zip_path, path)
@@ -84,21 +83,20 @@ def download_data() -> tuple[str, str, str]:
     return (trn_file, val_file, tst_file)
 
 
-def load_sentences(infile: str) -> tuple[list[str], list[int]]:
-
+def load_sentences(infile: str) -> tuple[list[list[str]], list[int]]:
     """
     Loads standford dataset sentences (and labels) without the tree structure.
 
     Args:
-        infile (str): 
+        infile (str):
             Path to the file with the sentences to load.
 
     Returns:
-        (tuple[list[str], list[int]]): 
+        (tuple[list[str], list[int]]):
             A tuple of lists containing the sentences and their corresponding labels.
     """
 
-    sentences: list[str] = list([])
+    sentences: list[list[str]] = list([])
     labels: list[int] = list([])
 
     with open(infile, "r") as file:
@@ -113,7 +111,7 @@ def load_sentences(infile: str) -> tuple[list[str], list[int]]:
     return (sentences, labels)
 
 
-def build_vocab(sentences: str) -> tuple[dict[str, int], dict[int, str]]:
+def build_vocab(sentences: list[str]) -> tuple[dict[str, int], dict[int, str]]:
     """
     Creates a vocabulary from a list of SentimentExample objects.
 
@@ -121,7 +119,7 @@ def build_vocab(sentences: str) -> tuple[dict[str, int], dict[int, str]]:
     values are their corresponding indices.
 
     Args:
-        examples (List[SentimentExample]): A list of SentimentExample objects.
+        examples (List[str]): A list of SentimentExample objects.
 
     Returns:
         Dict[str, int]: A dictionary representing the vocabulary, where each word is
@@ -138,7 +136,9 @@ def build_vocab(sentences: str) -> tuple[dict[str, int], dict[int, str]]:
     return (wrd2idx, idx2wrd)
 
 
-def bag_of_words(text: list[str], vocab: dict[str, int], binary: bool = False) -> torch.Tensor:
+def bag_of_words(
+    text: str, vocab: dict[str, int], binary: bool = False
+) -> torch.Tensor:
     """
     Converts a list of words into a bag-of-words vector based on the provided
     vocabulary.
