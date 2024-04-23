@@ -8,9 +8,9 @@ class NaiveBayes:
         """
         Initializes the Naive Bayes classifier
         """
-        self.class_priors: Dict[int, torch.Tensor] = None
-        self.conditional_probabilities: Dict[int, torch.Tensor] = None
-        self.vocab_size: int = None
+        self.class_priors: dict
+        self.conditional_probabilities: dict
+        self.vocab_size: int = 0
         self.labels: torch.Tensor
 
     def fit(
@@ -32,7 +32,7 @@ class NaiveBayes:
         # assert False
 
         self.class_priors = self.estimate_class_priors(labels)
-        self.unique_labels = torch.arange(len(self.class_priors.keys()))
+        self.unique_labels: torch.Tensor = torch.arange(len(self.class_priors.keys()))
         self.vocab_size = labels.shape[0]
         self.conditional_probabilities = self.estimate_conditional_probabilities(
             features, labels, delta
@@ -52,8 +52,10 @@ class NaiveBayes:
             estimated prior probabilities.
         """
 
-        class_priors = {label: torch.tensor([count]) 
-            for label, count in Counter(labels.tolist()).items()}
+        class_priors = {
+            label: torch.tensor([count])
+            for label, count in Counter(labels.tolist()).items()
+        }
 
         return class_priors
 
@@ -88,7 +90,8 @@ class NaiveBayes:
 
         class_labels: list = labels.unique().tolist()
         smoothed_vocabulary_word_frecuencies: torch.Tensor = (
-            torch.sum(features, dim=0) + features.shape[1] * delta#labels.shape[0] * delta
+            torch.sum(features, dim=0)
+            + features.shape[1] * delta  # labels.shape[0] * delta
         )
 
         for class_label in class_labels:
