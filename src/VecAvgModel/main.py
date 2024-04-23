@@ -10,37 +10,31 @@ from src.data import download_data, generate_dataloaders
 from src.utils import save_model, load_pretrained_weights
 from src.treebank import Tree
 from src.pretrained_embeddings import SkipGramNeg
-from src.VecAvgModel.models import VecAvg, Weighter, UniformWeighter, NaiveBayesWeighter
-from src.VecAvgModel.train_functions import train_step, val_step
+from src.models import VecAvg, Weighter, UniformWeighter, NaiveBayesWeighter
+from src.train_functions import train_step, val_step
 
 from torch.utils.data import DataLoader
 
 # hyperparameters
 EMBED_DIM: int = 300
 NUM_CLASSES: int = 5
-HIDDEN_SIZES: tuple[int, int, int] = (264, 264, 64)  # (128, 128, 64)
-epochs: int = 1  # 00
-lr: float = 4 * 1e-5  # 1e-3
+HIDDEN_SIZES: tuple[int, int, int] = (256, 256, 64)  # (514, 514, 64)
+epochs: int = 100
+lr: float = 5e-3
 batch_size: int = 128
-our_embeddings: bool = True
-use_naive_bayes: bool = False
+use_naive_bayes: bool = True
 
 
 def main() -> None:
     """
     This function is the main program for training.
     """
-
     # empty nohup file
     open("nohup.out", "w").close()
 
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = "cpu"
 
     download_data()
-
-    # empty nohup file
-    open("nohup.out", "w").close()
 
     # load data
     train_loader: DataLoader
@@ -82,22 +76,29 @@ def main() -> None:
         for param in pretrained_model.parameters():
             param.requires_grad = False
 
-        naive_bayes_params: tuple[list[torch.Tensor], list[int]]
-        if use_naive_bayes:
-            sentences: list[torch.Tensor] = []
-            labels: list[int] = []
-            for tree in train_data:
-                sentences.append([vocab_to_int[word] for word in tree.get_words()])
-                labels.append(tree.labels[-1])
-            for tree in val_data:
-                sentences.append([vocab_to_int[word] for word in tree.get_words()])
-                labels.append(tree.labels[-1])
+        naive_bayes_params: tuple[list[list[int]], list[int]]
+        sentences: list[list[int]] = []
+        labels: list[int] = []
+        weighter: Weighter
+        for tree in train_data:
+            sentences.append([vocab_to_int[word] for word in tree.get_words()])
+            labels.append(tree.labels[-1])
+        for tree in val_data:
+            sentences.append([vocab_to_int[word] for word in tree.get_words()])
+            labels.append(tree.labels[-1])
 
-            naive_bayes_params: tuple = (sentences, labels)
-            weighter: Weighter = NaiveBayesWeighter()
+        unique_labels: torch.Tensor = torch.unique(torch.Tensor(labels))
+
+        if use_naive_bayes:
+            naive_bayes_params = (sentences, labels)
+            weighter = NaiveBayesWeighter(
+                vocab_size=vocab_size, output_size=unique_labels.shape[0]
+            )
             weighter.fit(*naive_bayes_params)
         else:
-            weighter: Weighter = UniformWeighter()
+            weighter = UniformWeighter(
+                vocab_size=vocab_size, output_size=unique_labels.shape[0]
+            )
 
         model: torch.nn.Module = VecAvg(
             input_size=EMBED_DIM,
@@ -114,8 +115,10 @@ def main() -> None:
     for epoch in tqdm(range(epochs)):
         # call train step
         print()
-        train_step(model, train_loader, loss, optimizer, epoch, device, weighter)
-        val_step(model, val_loader, loss, epoch, device, weighter)
+        train_step(
+            model, train_loader, loss, optimizer, epoch, device, weighter, NUM_CLASSES
+        )
+        val_step(model, val_loader, loss, epoch, device, weighter, NUM_CLASSES)
 
     # save model
     now: datetime = datetime.now()
